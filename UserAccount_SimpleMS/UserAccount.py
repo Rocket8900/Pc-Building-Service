@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, Response
 from flask_pymongo import PyMongo
+from pymongo.errors import PyMongoError
 from bson import ObjectId, json_util
 import bson.errors
 
@@ -18,9 +19,11 @@ def create_user():
     if existing_user:
         return jsonify({"error": "User with this Google ID already exists", "user_id": str(existing_user['_id'])}), 409
 
-    result = mongo.db.users.insert_one(data)
-    return jsonify({"message": "User created successfully", "user_id": str(result.inserted_id)}), 201
-
+    try:
+        result = mongo.db.users.insert_one(data)
+        return jsonify({"message": "User created successfully", "user_id": str(result.inserted_id)}), 201
+    except PyMongoError as e:
+        return jsonify({"error": "Failed to insert user data", "details": str(e)}), 500
 
 
 @app.route('/users/<id>', methods=['GET'])
@@ -61,4 +64,6 @@ def delete_user(id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True,  port=5002)
+
+
