@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "image": "./img/news/1.webp",
+    "date": "25.10.2023",
+    "title": "How to Set Up Your Own Game Server",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 2,
+    "image": "./img/news/2.webp",
+    "date": "25.10.2023",
+    "title": "Rise in Demand for Private Game Servers",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 3,
+    "image": "./img/news/3.webp",
+    "date": "25.10.2023",
+    "title": "Top Hosting Providers for Game Servers",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 4,
+    "image": "./img/news/4.webp",
+    "date": "25.10.2023",
+    "title": "E-Sports and Competitive Gaming",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 5,
+    "image": "./img/news/5.webp",
+    "date": "25.10.2023",
+    "title": "How to Protect Your Online World",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 6,
+    "image": "./img/news/6.webp",
+    "date": "25.10.2023",
+    "title": "5 Ways to Maintain a Good Posture",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 7,
+    "image": "./img/news/3.webp",
+    "date": "25.10.2023",
+    "title": "How to Set Up Your Own Game Server",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  },
+  {
+    "id": 8,
+    "image": "./img/news/1.webp",
+    "date": "25.10.2023",
+    "title": "Rise in Demand for Private Game Servers",
+    "excerpt": "Dolore officia sint incididunt non excepteur ea mollit commodo ut enim reprehenderit cupidatat labore ad laborum consectetur consequat..."
+  }
+]
