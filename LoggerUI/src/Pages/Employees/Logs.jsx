@@ -1,4 +1,5 @@
 import { useState } from "react";
+import axios from "axios";
 import "/src/index.css";
 
 export function Logs() {
@@ -11,8 +12,9 @@ export function Logs() {
     // Reset the array
     setData(() => []);
 
-    // Retrieving via REST API
-    const dataRetrieved = await fetch("http://localhost:3900/api/data", {
+    // Retrieving via REST API (Use Kong Here?)
+    // http://localhost:3900/api/data
+    const dataRetrieved = await fetch("http://localhost:8000/api/data", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
