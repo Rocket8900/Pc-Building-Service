@@ -14,15 +14,18 @@ export function Logs() {
 
     // Retrieving via REST API (Use Kong Here?)
     // http://localhost:3900/api/data
-    const dataRetrieved = await fetch("http://localhost:8000/api/data", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        log_type: logType,
-      }),
-    });
+    const dataRetrieved = await fetch(
+      "http://localhost:8000/api/data?apikey=reader",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          log_type: logType,
+        }),
+      }
+    );
 
     const jsonData = await dataRetrieved.json();
 
