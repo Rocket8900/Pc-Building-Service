@@ -6,10 +6,26 @@ export function Checkout() {
 
   const { cartItems } = location.state; // Retrieve data from cart
 
-  const [retrievedItems, setRetrievedItems] = useState(cartItems);
+  async function directToStripePayment() {
+    const stripe = await loadStripe(
+      "pk_test_51OmXJ1HQ1nrMbTH7TmSEHBoyfEzxBPWMlPCP5humXfzlDx3IR2ujkwiHeZFt2vLB7gRSD072QyaA9xc8wpFM41Y200glmvQQZn"
+    );
 
-  function directToStripePayment() {
-    navigate("/stripe-payment");
+    const body = {
+      products: retrievedItems,
+    };
+
+    const headers = {
+      "Content-Type": "application/json",
+    };
+
+    const response = await fetch(`${apiURL}/process-payment`, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(body),
+    });
+
+    const jsonData = await response.json();
   }
 
   // For Total:
@@ -18,22 +34,23 @@ export function Checkout() {
   // Update the Payment button to reflect total amount on mount
   useEffect(() => {
     setTotal(
-      retrievedItems.reduce((total, eachItem) => {
+      cartItems.reduce((total, eachItem) => {
         return total + eachItem.price * eachItem.quantity;
       }, 0)
     );
   }, []);
 
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    address: "",
-  });
+  // Deprecated to handle the payment details at StripePayment.jsx
+  // const [formData, setFormData] = useState({
+  //   fullName: "",
+  //   email: "",
+  //   address: "",
+  // });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+  //   setFormData({ ...formData, [name]: value });
+  // };
 
   return (
     <>
@@ -62,7 +79,7 @@ export function Checkout() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {retrievedItems.map((item) => (
+                  {cartItems.map((item) => (
                     <tr key={item.id} className="text-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm text-gray-900">{item.name}</div>
