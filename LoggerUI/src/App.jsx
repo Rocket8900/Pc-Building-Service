@@ -23,6 +23,7 @@ import { RepairDetails } from "./Pages/Account/RepairDetails";
 import { Cart } from "./Pages/Cart/Cart";
 import { Checkout } from "./Pages/Cart/Checkout";
 import { OrderConfirmation } from "./Pages/Cart/OrderConfirmation";
+import { Completion } from "./Pages/Cart/Completion";
 
 // ____ EMPLOYEE PAGES ____
 import { Logs } from "./Pages/Employees/Logs";
@@ -78,6 +79,7 @@ function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/order-confirmation" element={<OrderConfirmation />} />
+        <Route path="/completion" element={<Completion />} />
 
         <Route path="/account" element={<Account />} />
         <Route path="/order-details" element={<OrderDetails />} />

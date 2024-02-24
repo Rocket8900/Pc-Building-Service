@@ -1,7 +1,7 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
 import { loadStripe } from "@stripe/stripe-js";
-import CheckoutForm from "./CheckoutForm";
+import StripeCheckoutForm from "./StripeCheckoutForm";
 import { Elements } from "@stripe/react-stripe-js";
 
 export function Checkout() {
@@ -62,12 +62,16 @@ export function Checkout() {
 
   return (
     <>
-      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-        <div className="w-full max-w-6xl px-4 py-12 bg-white shadow-lg rounded-lg">
+      <div className="flex flex-col items-center min-h-screen bg-gray-100">
+        <div className="w-full max-w-6xl px-4 py-12 mt-10 bg-white shadow-lg rounded-lg">
           <h1 className="text-2xl font-bold mb-6">Checkout</h1>
-          <div className="flex flex-col items-center justify-center h-full">
+          <div className="flex justify-center h-full">
+            {" "}
+            {/* Adjusted for side-by-side layout */}
             {/* Order Summary */}
-            <div className="bg-gray-100 p-4 rounded-lg mb-4">
+            <div className="w-1/2 bg-gray-100 p-4 rounded-lg mr-4">
+              {" "}
+              {/* Adjusted for width and margin */}
               <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
@@ -110,10 +114,18 @@ export function Checkout() {
                 <h2 className="text-xl font-bold mb-2">Total Price</h2>
                 <p className="text-2xl font-semibold">$ {total.toFixed(2)}</p>
               </div>
+            </div>
+            {/* Payment Section */}
+            <div className="w-1/2 bg-gray-100 p-4 rounded-lg">
+              {" "}
+              {/* Adjusted for width */}
+              {/* Add your payment form or details here */}
+              <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
+              {/* Payment details */}
               <div>
                 {stripePromise && clientSecret && (
                   <Elements stripe={stripePromise} options={clientSecret}>
-                    <CheckoutForm />
+                    <StripeCheckoutForm />
                   </Elements>
                 )}
               </div>
@@ -121,6 +133,7 @@ export function Checkout() {
           </div>
         </div>
       </div>
+      ;
     </>
   );
 }
