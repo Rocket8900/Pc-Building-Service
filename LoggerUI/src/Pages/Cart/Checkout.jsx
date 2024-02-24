@@ -1,56 +1,64 @@
 import { useNavigate, useLocation } from "react-router-dom";
 import React, { useState, useEffect } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import CheckoutForm from "./CheckoutForm";
+import { Elements } from "@stripe/react-stripe-js";
+
 export function Checkout() {
   const navigate = useNavigate();
-  const location = useLocation(); // Retrieve from useNavigate
+  const location = useLocation(); // Retrieve data from previous screens
 
-  const { cartItems } = location.state; // Retrieve data from cart
-
-  async function directToStripePayment() {
-    const stripe = await loadStripe(
-      "pk_test_51OmXJ1HQ1nrMbTH7TmSEHBoyfEzxBPWMlPCP5humXfzlDx3IR2ujkwiHeZFt2vLB7gRSD072QyaA9xc8wpFM41Y200glmvQQZn"
-    );
-
-    const body = {
-      products: retrievedItems,
-    };
-
-    const headers = {
-      "Content-Type": "application/json",
-    };
-
-    const response = await fetch(`${apiURL}/process-payment`, {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify(body),
-    });
-
-    const jsonData = await response.json();
-  }
-
-  // For Total:
+  const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const [stripePromise, setStripePromise] = useState(null);
+  const [clientSecret, setClientSecret] = useState("");
 
-  // Update the Payment button to reflect total amount on mount
+  // To Fetch the Publishable key from Server (Stripe)
   useEffect(() => {
-    setTotal(
-      cartItems.reduce((total, eachItem) => {
-        return total + eachItem.price * eachItem.quantity;
-      }, 0)
-    );
+    fetch("http://localhost:3400/config").then(async (r) => {
+      const { publishableKey } = await r.json();
+      setStripePromise(loadStripe(publishableKey));
+    });
   }, []);
 
-  // Deprecated to handle the payment details at StripePayment.jsx
-  // const [formData, setFormData] = useState({
-  //   fullName: "",
-  //   email: "",
-  //   address: "",
-  // });
+  useEffect(() => {
+    if (total != 0) directToStripePayment();
+  }, [total]);
 
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-  //   setFormData({ ...formData, [name]: value });
-  // };
+  // Redirect back to cart if null on mount
+  useEffect(() => {
+    if (location.state == null) {
+      navigate("/cart");
+    } else {
+      setCartItems(location.state.cartItems); // Retrieve data from cart
+    }
+  }, [location.state, navigate]);
+
+  // Reflect total amount on cartItem change [used on button]
+  useEffect(() => {
+    if (cartItems.length > 0) {
+      setTotal(
+        cartItems.reduce((total, eachItem) => {
+          return total + eachItem.price * eachItem.quantity;
+        }, 0)
+      );
+    }
+  }, [cartItems]);
+
+  async function directToStripePayment() {
+    const clientSecret = await fetch(
+      "http://localhost:3400/create-payment-intent",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ total: total }),
+      }
+    );
+
+    setClientSecret(await clientSecret.json()); // To initialize the Stripe element
+  }
 
   return (
     <>
@@ -79,29 +87,36 @@ export function Checkout() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {cartItems.map((item) => (
-                    <tr key={item.id} className="text-gray-700">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{item.name}</div>
-                      </td>
-                      <td className="text-sm text-gray-500">
-                        ${item.price.toFixed(2)}
-                      </td>
-                      <td className="text-center">{item.quantity}</td>
-                      <td className="text-center">
-                        ${(item.price * item.quantity).toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
+                  {cartItems.length > 0 &&
+                    cartItems.map((item) => (
+                      <tr key={item.id} className="text-gray-700">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900">
+                            {item.name}
+                          </div>
+                        </td>
+                        <td className="text-sm text-gray-500">
+                          ${item.price.toFixed(2)}
+                        </td>
+                        <td className="text-center">{item.quantity}</td>
+                        <td className="text-center">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
-              <div></div>
-              <button
-                onClick={directToStripePayment}
-                className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded border border-blue-700 shadow-md hover:shadow-lg transition-all duration-200"
-              >
-                <span className="text-lg">Pay ${total}</span>
-              </button>
+              <div className="bg-gray-100 p-6 rounded-lg shadow-md">
+                <h2 className="text-xl font-bold mb-2">Total Price</h2>
+                <p className="text-2xl font-semibold">$ {total.toFixed(2)}</p>
+              </div>
+              <div>
+                {stripePromise && clientSecret && (
+                  <Elements stripe={stripePromise} options={clientSecret}>
+                    <CheckoutForm />
+                  </Elements>
+                )}
+              </div>
             </div>
           </div>
         </div>

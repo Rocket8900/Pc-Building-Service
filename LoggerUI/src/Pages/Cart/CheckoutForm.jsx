@@ -1,48 +1,52 @@
+import { PaymentElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import { useStripe, useElements } from "@stripe/react-stripe-js";
 
-export function CheckoutForm() {
-  const [loading, setLoading] = useState(false);
+export default function CheckoutForm() {
   const stripe = useStripe();
   const elements = useElements();
 
+  const [message, setMessage] = useState(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Keep this on loading till data returns
 
-    const cardElement = elements.getElement(CardElement);
-    const { error, paymentMethod } = await stripe.createPaymentMethod({
-      type: "card",
-      card: cardElement,
+    if (!stripe || !elements) {
+      // Stripe.js has not yet loaded.
+      // Make sure to disable form submission until Stripe.js has loaded.
+      return;
+    }
+
+    setIsProcessing(true);
+
+    const { error } = await stripe.confirmPayment({
+      elements,
+      confirmParams: {
+        // Make sure to change this to your payment completion page
+        return_url: `${window.location.origin}/completion`,
+      },
     });
 
-    if (error) {
-      console.error("[error]", error);
-      setLoading(false);
+    if (error.type === "card_error" || error.type === "validation_error") {
+      setMessage(error.message);
     } else {
-      // Send to Backend Payment Server
-      const response = await fetch("/charge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: {
-          amount: 1000,
-          currency: "sgd",
-          paymentMethodId: paymentMethod.id,
-        },
-      });
-
-      const data = await response.json();
-      console.log(data);
-      setLoading(false);
+      setMessage("An unexpected error occured.");
     }
+
+    setIsProcessing(false);
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <CardElement />
-      <button type="submit" disabled={!stripe || loading}>
-        {loading ? "Processing" : "Pay"}
+    <form id="payment-form" onSubmit={handleSubmit}>
+      <PaymentElement id="payment-element" />
+      <button disabled={isProcessing || !stripe || !elements} id="submit">
+        <span id="button-text">
+          {isProcessing ? "Processing ... " : "Pay now"}
+        </span>
       </button>
+      {/* Show any error or success messages */}
+      {message && <div id="payment-message">{message}</div>}
     </form>
   );
 }

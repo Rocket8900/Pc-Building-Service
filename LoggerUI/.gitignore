@@ -25,3 +25,6 @@ dist-ssr
 
 # MacOS Stuff
 .DS_Store
+
+# Environment variables
+.env
