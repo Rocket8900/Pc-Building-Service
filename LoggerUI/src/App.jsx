@@ -22,7 +22,6 @@ import { RepairDetails } from "./Pages/Account/RepairDetails";
 // ____ CART PAGES ____
 import { Cart } from "./Pages/Cart/Cart";
 import { Checkout } from "./Pages/Cart/Checkout";
-import { OrderConfirmation } from "./Pages/Cart/OrderConfirmation";
 import { Completion } from "./Pages/Cart/Completion";
 
 // ____ EMPLOYEE PAGES ____
@@ -78,7 +77,6 @@ function App() {
 
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
-        <Route path="/order-confirmation" element={<OrderConfirmation />} />
         <Route path="/completion" element={<Completion />} />
 
         <Route path="/account" element={<Account />} />

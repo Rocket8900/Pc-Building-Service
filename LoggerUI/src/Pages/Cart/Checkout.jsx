@@ -127,7 +127,7 @@ export function Checkout() {
               <div>
                 {stripePromise && clientSecret && (
                   <Elements stripe={stripePromise} options={clientSecret}>
-                    <StripeCheckoutForm />
+                    <StripeCheckoutForm orders={cartItems} />
                   </Elements>
                 )}
               </div>
