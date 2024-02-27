@@ -1,8 +1,11 @@
-from flask import Flask, request, redirect, session, url_for, jsonify
+from flask import Flask, request, redirect, session, url_for, jsonify, make_response
 from flask_cors import CORS  
 import requests
 import os
 from dotenv import load_dotenv
+import jwt
+import datetime
+
 load_dotenv()
 
 app = Flask(__name__)
@@ -11,22 +14,39 @@ CORS(app, resources={r"/login/*": {"origins": "http://localhost:3000"}})
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key') 
 client_id = "103401913594-aq4cvr1j7uipabj86vjc4nnv4p418sh6.apps.googleusercontent.com"
 client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')  
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your_jwt_secret')
 redirect_uri = "http://localhost:5001/login/google"
 
+def generate_jwt(user_id,user_role):
+    payload = {
+        'user_id': user_id,
+        'role': user_role,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=3),
+        'iat': datetime.datetime.utcnow()
+    }
+    token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
+    return token
+
 def check_or_create_user(user_data):
-    simple_service_url = "http://localhost:5002/users"
+    simple_service_url = "http://localhost:5002/user"
 
     response = requests.post(simple_service_url,
                              json=user_data)
-
-    if response.status_code == 409:
-        return 'User successfully logged in.'
-    elif response.status_code == 201:
-        return 'User account created successfully.'
+    
+    if response.status_code == 201:
+        response_json = response.json()
+        user_id = response_json.get('user_id')  
+        message = response_json.get('message')
+        return {'message': message, 'user_id': user_id}
+    elif response.status_code == 409:
+        response_json = response.json()
+        message = 'User successfully logged in.'
+        user_id = response_json.get('user_id') 
+        return {'message': message, 'user_id': user_id}
     elif response.status_code == 400:
-        return 'Error with user data from Google.'
+        return {'message': 'Error with user data from Google.'}
     else:
-        return 'Error creating user account.'
+        return {'message': 'Error creating user account.'}
 
 
 @app.route('/login/google')
@@ -57,7 +77,8 @@ def login_google():
     )
 
     if profile_response.status_code != 200:
-        return jsonify(profile_response.json()), profile_response.status_code
+        return jsonify({'error': 'Failed to fetch user profile from Google', 'details': profile_response.json()}), 500
+
     
     profile_data = profile_response.json()
 
@@ -72,18 +93,28 @@ def login_google():
         "contact": {
             "email": profile_data.get("email")
         },
-        "profilePictureURL": profile_data.get("picture")
+        "profilePictureURL": profile_data.get("picture"),
+        "role": "customer"
     }
 
-    session['access_token'] = access_token
 
     user_check_message = check_or_create_user(db_user_data)
+
 
     response_data = {
         "db_action": user_check_message,
         "user_info": db_user_data
     }
-    return jsonify(response_data)
+
+    user_role = db_user_data['role']
+
+    if 'user_id' in user_check_message:
+        user_id = user_check_message['user_id']
+        token = generate_jwt(user_id,user_role)
+        response_data['token'] = token
+        return jsonify(response_data), 200
+    else:
+        return jsonify({'error': 'Failed to check or create user', 'details': user_check_message}), 500
 
 
 
