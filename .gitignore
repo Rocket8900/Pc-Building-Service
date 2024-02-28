@@ -2,3 +2,4 @@ node_modules
 Payment/.DS_Store
 email service/.env
 email service/credentials.json
+notification-ms/.env
