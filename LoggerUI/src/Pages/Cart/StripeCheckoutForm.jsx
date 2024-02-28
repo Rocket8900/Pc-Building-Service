@@ -38,7 +38,7 @@ export default function StripeCheckoutForm({ orders, total }) {
       setMessage("Payment confirmed, but failed to send confirmation email");
     }
 
-    // Payment processing
+    // _______ Payment processing _______
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
