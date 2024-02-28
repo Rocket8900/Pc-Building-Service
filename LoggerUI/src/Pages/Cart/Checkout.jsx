@@ -123,11 +123,11 @@ export function Checkout() {
               {/* Adjusted for width */}
               {/* Add your payment form or details here */}
               <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-              {/* Payment details */}
+              {/* Payment Element */}
               <div>
                 {stripePromise && clientSecret && (
                   <Elements stripe={stripePromise} options={clientSecret}>
-                    <StripeCheckoutForm orders={cartItems} />
+                    <StripeCheckoutForm orders={cartItems} total={total} />
                   </Elements>
                 )}
               </div>
