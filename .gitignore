@@ -3,3 +3,4 @@ Payment/.DS_Store
 email service/.env
 email service/credentials.json
 notification-ms/.env
+LoggerUI/.vite/deps/_metadata.json
