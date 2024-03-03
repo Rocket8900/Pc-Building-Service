@@ -20,7 +20,7 @@ export default function StripeCheckoutForm({ orders, total }) {
 
     setIsProcessing(true);
 
-    // Send POST request to Payment MS with Cart data
+    // Payment confirmed successfully, proceed to send confirmation email
     try {
       const response = await fetch(
         "http://localhost:5900/send-confirmation-email",
@@ -38,20 +38,26 @@ export default function StripeCheckoutForm({ orders, total }) {
       setMessage("Payment confirmed, but failed to send confirmation email");
     }
 
-    // _______ Payment processing _______
+    // Payment processing
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Payment completion page
-        return_url: `${window.location.origin}/completion`,
+        // Redirected payment completion page
+        return_url: `${window.location.origin}/completion?custID=123`,
       },
     });
 
-    if (error.type === "card_error" || error.type === "validation_error") {
-      setMessage(error.message);
+    if (error) {
+      // Handle errors from the payment process
+      if (error.type === "card_error" || error.type === "validation_error") {
+        setMessage(error.message);
+      } else {
+        setMessage("An unexpected error occurred.");
+      }
       setIsProcessing(false);
       return;
     }
+
     setIsProcessing(false);
   };
 

@@ -1,8 +1,34 @@
 import { useNavigate } from "react-router-dom";
-import React from "react";
+import { React, useEffect } from "react";
 
 export function Completion() {
   const navigate = useNavigate();
+  const searchParams = new URLSearchParams(window.location.search);
+  const custID = searchParams.get("custID");
+
+  console.log(custID);
+
+  // Once user gets to this page, trigger the post-payment processing in Handling Order CMS
+  // useEffect(async () => {
+  //   // Payment confirmed successfully, proceed to send confirmation email
+  //   try {
+  //     const response = await fetch(
+  //       "http://localhost:5900/send-confirmation-email",
+  //       {
+  //         method: "POST",
+  //         headers: { "Content-Type": "application/json" },
+  //         body: JSON.stringify({ custID: custID }),
+  //       }
+  //     );
+
+  //     if (!response.ok) throw new Error("Failed to send confirmation email");
+  //     setMessage("Payment confirmed, confirmation email sent");
+  //   } catch (error) {
+  //     console.error("Error sending confirmation email");
+  //     setMessage("Payment confirmed, but failed to send confirmation email");
+  //   }
+  // }, []);
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md px-4 py-12 bg-white shadow-lg rounded-lg">
