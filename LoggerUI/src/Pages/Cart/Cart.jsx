@@ -4,18 +4,26 @@ import React, { useState, useEffect } from "react";
 export function Cart() {
   const navigate = useNavigate();
 
-  // Direct to checkout & pass the data to next page
-  function directToCheckout() {
-    navigate("/checkout", { state: { cartItems } });
-  }
-
-  const [cartItems, setCartItems] = useState([
-    { id: 1, name: "Item 1", price: 10, quantity: 2 },
-    { id: 2, name: "Item 2", price: 20, quantity: 1 },
-    { id: 3, name: "Item 3", price: 30, quantity: 3 },
-  ]);
-
+  const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState(0);
+  const customerID = "Salah";
+
+  // Get Cart Data & Total bill on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/cart/${customerID}`
+        );
+        const data = await response.json();
+        setCartItems(data.data.cart_item);
+      } catch (e) {
+        console.error("Error fetching data: ", e);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   useEffect(() => {
     setTotal(
@@ -25,15 +33,44 @@ export function Cart() {
     );
   }, [cartItems]);
 
-  const handleQuantityChange = (itemId, newQuantity) => {
-    const updatedCartItems = cartItems.map((item) =>
-      item.id === itemId ? { ...item, quantity: newQuantity } : item
-    );
-    setCartItems(updatedCartItems.filter((item) => item.quantity > 0));
+  // Direct to checkout & pass the data to next page
+  function directToCheckout() {
+    navigate("/checkout", { state: { cartItems } });
+  }
+
+  const handleQuantityChange = (itemId, partsId, newQuantity) => {
+    const updatedCartItems = cartItems.map((item) => {
+      // Check if the current item matches the itemId
+      if (item.item_id === itemId) {
+        // Map over the parts to find and update the specific part
+        const updatedParts = item.parts.map((part) => {
+          // If the part matches the partsId, update its quantity
+          if (part.parts_id === partsId) {
+            return { ...part, quantity: newQuantity };
+          }
+          // Otherwise, return the part unchanged
+          return part;
+        });
+        // Return a new item object with the updated parts array
+        return { ...item, parts: updatedParts };
+      }
+      // If the current item does not match the itemId, return it unchanged
+      return item;
+    });
+    // Update the cartItems state with the new updatedCartItems
+    setCartItems(updatedCartItems);
   };
 
-  const handleRemoveFromCart = (itemId) => {
-    const updatedCartItems = cartItems.filter((item) => item.id !== itemId);
+  const handleRemoveFromCart = (itemId, partsId) => {
+    const updatedCartItems = cartItems.map((item) => {
+      if (item.item_id === itemId) {
+        const updatedParts = item.parts.filter(
+          (part) => part.parts_id !== partsId
+        );
+        return { ...item, parts: updatedParts }; // Return removed part
+      }
+      return item; // Unchanged item
+    });
     setCartItems(updatedCartItems);
   };
 
@@ -47,7 +84,98 @@ export function Cart() {
             {/* Cart Table */}
             <div className="bg-gray-100 p-4 rounded-lg mb-4">
               {/* Added margin-bottom for spacing */}
-              <table className="min-w-full divide-y divide-gray-200">
+              {/* EACH PC */}
+              {cartItems.map((item) => (
+                <table
+                  key={item.item_id}
+                  className="min-w-full divide-y divide-gray-200"
+                >
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Product
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Price
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Quantity
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {/* EACH PART */}
+                    {item.parts.map((part) => (
+                      <tr key={part.parts_id} className="text-gray-700">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {part.parts_id}
+                          </div>
+                        </td>
+                        <td className="text-sm text-gray-500">
+                          ${item.price.toFixed(2)}
+                        </td>
+                        <td className="text-center">
+                          <div className="flex justify-center space-x-2">
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.item_id,
+                                  part.parts_id,
+                                  part.quantity - 1
+                                )
+                              }
+                              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
+                            >
+                              -
+                            </button>
+                            <span className="border border-gray-300 rounded-md px-3 py-1">
+                              {part.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(
+                                  item.item_id,
+                                  part.parts_id,
+                                  part.quantity + 1
+                                )
+                              }
+                              className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
+                            >
+                              +
+                            </button>
+                          </div>
+                        </td>
+                        <td className="text-center">
+                          <button
+                            onClick={() =>
+                              handleRemoveFromCart(item.item_id, part.parts_id)
+                            }
+                            className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="bg-gray-100">
+                      <td colSpan="3" className="text-right font-bold text-lg">
+                        Total
+                      </td>
+                      <td className="text-center font-bold text-lg">
+                        ${item.price}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              ))}
+
+              {/* Old Table */}
+
+              {/* <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -66,7 +194,7 @@ export function Cart() {
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {cartItems.map((item) => (
-                    <tr key={item.id} className="text-gray-700">
+                    <tr key={item.item_id} className="text-gray-700">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {item.name}
@@ -115,7 +243,7 @@ export function Cart() {
                     <td className="text-center font-bold text-lg">${total}</td>
                   </tr>
                 </tbody>
-              </table>
+              </table> */}
             </div>
             <button
               onClick={directToCheckout}
