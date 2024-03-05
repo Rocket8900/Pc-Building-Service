@@ -4,30 +4,26 @@ import { React, useEffect } from "react";
 export function Completion() {
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(window.location.search);
-  const custID = searchParams.get("custID");
+  const customerID = searchParams.get("customerID");
 
-  console.log(custID);
+  console.log(customerID);
 
   // Once user gets to this page, trigger the post-payment processing in Handling Order CMS
-  // useEffect(async () => {
-  //   // Payment confirmed successfully, proceed to send confirmation email
-  //   try {
-  //     const response = await fetch(
-  //       "http://localhost:5900/send-confirmation-email",
-  //       {
-  //         method: "POST",
-  //         headers: { "Content-Type": "application/json" },
-  //         body: JSON.stringify({ custID: custID }),
-  //       }
-  //     );
+  useEffect(() => {
+    const sendEmail = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5100/send-confirmation-email/${customerID}`
+        );
 
-  //     if (!response.ok) throw new Error("Failed to send confirmation email");
-  //     setMessage("Payment confirmed, confirmation email sent");
-  //   } catch (error) {
-  //     console.error("Error sending confirmation email");
-  //     setMessage("Payment confirmed, but failed to send confirmation email");
-  //   }
-  // }, []);
+        if (!response.ok) throw new Error("Failed to send confirmation email");
+      } catch (error) {
+        console.error("Error sending confirmation email");
+      }
+    };
+
+    sendEmail();
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">

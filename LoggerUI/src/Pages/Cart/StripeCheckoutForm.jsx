@@ -2,7 +2,7 @@ import { PaymentElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import { useStripe, useElements } from "@stripe/react-stripe-js";
 
-export default function StripeCheckoutForm({ orders, total }) {
+export default function StripeCheckoutForm({ orders, customerID }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -20,30 +20,12 @@ export default function StripeCheckoutForm({ orders, total }) {
 
     setIsProcessing(true);
 
-    // Payment confirmed successfully, proceed to send confirmation email
-    try {
-      const response = await fetch(
-        "http://localhost:5900/send-confirmation-email",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ orders: orders }),
-        }
-      );
-
-      if (!response.ok) throw new Error("Failed to send confirmation email");
-      setMessage("Payment confirmed, confirmation email sent");
-    } catch (error) {
-      console.error("Error sending confirmation email");
-      setMessage("Payment confirmed, but failed to send confirmation email");
-    }
-
     // Payment processing
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         // Redirected payment completion page
-        return_url: `${window.location.origin}/completion?custID=123`,
+        return_url: `${window.location.origin}/completion?customerID=${customerID}`,
       },
     });
 

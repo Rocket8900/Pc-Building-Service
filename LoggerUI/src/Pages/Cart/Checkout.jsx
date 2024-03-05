@@ -8,11 +8,41 @@ export function Checkout() {
   const navigate = useNavigate();
   const location = useLocation(); // Retrieve data from previous screens
 
+  const [customerID, setCustomerId] = useState("");
   const [cartItems, setCartItems] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState([]);
+  const [finalPrice, setFinalPrice] = useState(0);
   const [stripePromise, setStripePromise] = useState(null);
   const [clientSecret, setClientSecret] = useState("");
 
+  // ______ RETRIEVE DATA FROM PREVIOUS PAGE ______
+  useEffect(() => {
+    // Redirect back to cart if null on mount
+    if (location.state == null) {
+      navigate("/cart");
+    } else {
+      console.log(location.state.cartItems);
+      console.log(location.state.total);
+      console.log(location.state.customerID);
+
+      setCartItems(location.state.cartItems); // Retrieve cart from previous Cart Page
+      setTotal(location.state.total); // Retrieve total from previous Cart Page
+      setCustomerId(location.state.customerID); // Retrieve Customer ID from previous Cart Page
+    }
+  }, [location.state, navigate]);
+
+  // // Reflect total amount on cartItem change [used on button]
+  useEffect(() => {
+    if (total.length > 0) {
+      setFinalPrice(
+        total.reduce((sum, each) => {
+          return sum + each.total;
+        }, 0)
+      );
+    }
+  }, [total]);
+
+  // ______ STRIPE STUFF ______
   // To Fetch the Publishable key from Server (Stripe)
   // http://localhost:3400/api/v1/config
   useEffect(() => {
@@ -23,28 +53,8 @@ export function Checkout() {
   }, []);
 
   useEffect(() => {
-    if (total != 0) directToStripePayment();
-  }, [total]);
-
-  // Redirect back to cart if null on mount
-  useEffect(() => {
-    if (location.state == null) {
-      navigate("/cart");
-    } else {
-      setCartItems(location.state.cartItems); // Retrieve data from cart
-    }
-  }, [location.state, navigate]);
-
-  // Reflect total amount on cartItem change [used on button]
-  useEffect(() => {
-    if (cartItems.length > 0) {
-      setTotal(
-        cartItems.reduce((total, eachItem) => {
-          return total + eachItem.price * eachItem.quantity;
-        }, 0)
-      );
-    }
-  }, [cartItems]);
+    if (finalPrice != 0) directToStripePayment();
+  }, [finalPrice]);
 
   // http://localhost:3400/create-payment-intent
   async function directToStripePayment() {
@@ -55,11 +65,22 @@ export function Checkout() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ total: total }),
+        body: JSON.stringify({ total: finalPrice }),
       }
     );
-
     setClientSecret(await clientSecret.json()); // To initialize the Stripe element
+  }
+
+  // _______ Formatter _______
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "decimal",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  // _______ Direct to checkout & pass the data to next page _______
+  function backToCart() {
+    navigate("/cart");
   }
 
   return (
@@ -69,56 +90,89 @@ export function Checkout() {
           <h1 className="text-2xl font-bold mb-6">Checkout</h1>
           <div className="flex justify-center h-full">
             {" "}
-            {/* Adjusted for side-by-side layout */}
             {/* Order Summary */}
-            <div className="w-1/2 bg-gray-100 p-4 rounded-lg mr-4">
-              {" "}
-              {/* Adjusted for width and margin */}
-              <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Item Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Price
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Quantity
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Subtotal
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {cartItems.length > 0 &&
-                    cartItems.map((item) => (
-                      <tr key={item.id} className="text-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">
-                            {item.name}
-                          </div>
-                        </td>
-                        <td className="text-sm text-gray-500">
-                          ${item.price.toFixed(2)}
-                        </td>
-                        <td className="text-center">{item.quantity}</td>
-                        <td className="text-center">
-                          ${(item.price * item.quantity).toFixed(2)}
+            <div className="w-3/5 bg-gray-100 p-4 rounded-lg mr-4">
+              <button
+                onClick={backToCart}
+                className="align-left bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
+              >
+                Back to Cart
+              </button>
+              <h3 className="text-lg font-semibold mt-3 mb-4">Order Summary</h3>
+              <div className="overflow-x-auto">
+                {cartItems.map((item) => (
+                  <table
+                    key={item.item_id}
+                    className="min-w-full divide-y divide-gray-200 mt-3"
+                  >
+                    <thead className="bg-gray-50">
+                      <tr className="text-gray-700">
+                        <th
+                          colSpan="4"
+                          className="px-6 py-3 text-center text-md font-medium text-gray-500 uppercase tracking-wider"
+                        >
+                          {item.pc_name}
+                        </th>
+                      </tr>
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Product
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Price
+                        </th>
+                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Quantity
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {item.parts.map((part) => (
+                        <tr key={part.parts_id} className="text-gray-700">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-left font-medium text-gray-900">
+                              {part.parts_name}
+                            </div>
+                          </td>
+                          <td className="text-sm text-gray-500">
+                            ${formatter.format(part.parts_price)}
+                          </td>
+                          <td className="text-center">
+                            <div className="flex justify-center space-x-2">
+                              <span className="border border-gray-300 rounded-md px-3 py-1">
+                                {part.quantity}
+                              </span>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className="bg-gray-100">
+                        <td
+                          colSpan="3"
+                          className="font-bold text-right-total text-lg px-6 py-2 whitespace-nowrap"
+                        >
+                          Total: $
+                          {total.map((eachTotal) => {
+                            if (eachTotal.item_id === item.item_id) {
+                              return formatter.format(eachTotal.total);
+                            }
+                          })}
                         </td>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
+                    </tbody>
+                  </table>
+                ))}
+              </div>
+              {/* Total price display */}
               <div className="bg-gray-100 p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-2">Total Price</h2>
-                <p className="text-2xl font-semibold">$ {total.toFixed(2)}</p>
+                <p className="text-2xl font-semibold">
+                  $ {formatter.format(finalPrice)}
+                </p>
               </div>
             </div>
             {/* Payment Section */}
-            <div className="w-1/2 bg-gray-100 p-4 rounded-lg">
+            <div className="w-2/5 bg-gray-100 p-4 rounded-lg">
               {" "}
               {/* Adjusted for width */}
               {/* Add your payment form or details here */}
@@ -127,7 +181,10 @@ export function Checkout() {
               <div>
                 {stripePromise && clientSecret && (
                   <Elements stripe={stripePromise} options={clientSecret}>
-                    <StripeCheckoutForm orders={cartItems} total={total} />
+                    <StripeCheckoutForm
+                      orders={cartItems}
+                      customerID={customerID}
+                    />
                   </Elements>
                 )}
               </div>
