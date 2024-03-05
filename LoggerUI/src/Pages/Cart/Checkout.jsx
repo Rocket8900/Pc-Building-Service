@@ -11,7 +11,6 @@ export function Checkout() {
   const [customerID, setCustomerId] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [total, setTotal] = useState([]);
-  const [finalPrice, setFinalPrice] = useState(0);
   const [stripePromise, setStripePromise] = useState(null);
   const [clientSecret, setClientSecret] = useState("");
 
@@ -32,15 +31,15 @@ export function Checkout() {
   }, [location.state, navigate]);
 
   // // Reflect total amount on cartItem change [used on button]
-  useEffect(() => {
-    if (total.length > 0) {
-      setFinalPrice(
-        total.reduce((sum, each) => {
-          return sum + each.total;
-        }, 0)
-      );
-    }
-  }, [total]);
+  // useEffect(() => {
+  //   if (total.length > 0) {
+  //     setFinalPrice(
+  //       total.reduce((sum, each) => {
+  //         return sum + each.total;
+  //       }, 0)
+  //     );
+  //   }
+  // }, [total]);
 
   // ______ STRIPE STUFF ______
   // To Fetch the Publishable key from Server (Stripe)
@@ -53,11 +52,12 @@ export function Checkout() {
   }, []);
 
   useEffect(() => {
-    if (finalPrice != 0) directToStripePayment();
-  }, [finalPrice]);
+    if (total != 0) directToStripePayment();
+  }, [total]);
 
   // http://localhost:3400/create-payment-intent
   async function directToStripePayment() {
+    console.log("FFFF");
     const clientSecret = await fetch(
       "http://localhost:8000/api/v1/create-payment-intent",
       {
@@ -65,7 +65,7 @@ export function Checkout() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ total: finalPrice }),
+        body: JSON.stringify({ total: total }),
       }
     );
     setClientSecret(await clientSecret.json()); // To initialize the Stripe element
@@ -82,6 +82,8 @@ export function Checkout() {
   function backToCart() {
     navigate("/cart");
   }
+
+  console.log(cartItems);
 
   return (
     <>
@@ -152,9 +154,9 @@ export function Checkout() {
                           className="font-bold text-right-total text-lg px-6 py-2 whitespace-nowrap"
                         >
                           Total: $
-                          {total.map((eachTotal) => {
-                            if (eachTotal.item_id === item.item_id) {
-                              return formatter.format(eachTotal.total);
+                          {cartItems.map((eachItem) => {
+                            if (eachItem.item_id === item.item_id) {
+                              return formatter.format(eachItem.price);
                             }
                           })}
                         </td>
@@ -167,7 +169,7 @@ export function Checkout() {
               <div className="bg-gray-100 p-6 rounded-lg shadow-md">
                 <h2 className="text-xl font-bold mb-2">Total Price</h2>
                 <p className="text-2xl font-semibold">
-                  $ {formatter.format(finalPrice)}
+                  $ {formatter.format(total)}
                 </p>
               </div>
             </div>

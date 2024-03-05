@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { debounce } from "lodash";
 
 export function Cart() {
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
-  const [total, setTotal] = useState([]);
+  const [updatedCart, setUpdatedCart] = useState([]);
+  const [total, setTotal] = useState(0);
   const customerID = "Salah";
 
   // Get Cart Data & Total bill on mount
@@ -19,6 +21,7 @@ export function Cart() {
         // If Response is ok, then update the cartItem state
         if (response.status === 200) {
           const data = await response.json();
+          console.log(data.data);
           setCartItems(data.data.cart_item);
         }
       } catch (e) {
@@ -29,17 +32,47 @@ export function Cart() {
     fetchData();
   }, []);
 
-  // _______ Calculate the total price for each item _______
+  // _______ When the cart updates _______
   useEffect(() => {
-    const newTotal = cartItems.map((item) => {
-      let tempTotal = 0;
-      item.parts.map((part) => {
+    let temp2Total = 0; // For storing total cart value
+    const newCart = cartItems.map((item) => {
+      let tempTotal = 0; // For storing total value of each item
+      const parts = item.parts.map((part) => {
         tempTotal += part.parts_price * part.quantity;
+        return part;
       });
-      return { item_id: item.item_id, total: tempTotal };
+      temp2Total += tempTotal;
+      return { ...item, parts, price: tempTotal };
     });
-    setTotal(newTotal);
+
+    setTotal(temp2Total);
+    setUpdatedCart(newCart);
   }, [cartItems]);
+
+  // _______ Update the Cart DB _______
+  useEffect(() => {
+    console.log("Called");
+    // Debounce to limit the frequency of calls
+    const debouncedUpdateCartDB = debounce(async () => {
+      if (updatedCart.length > 0) {
+        const payload = { customer_id: "Salah", cart_item: [...updatedCart] };
+
+        try {
+          const response = await fetch(`http://localhost:5000/cart`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+        } catch (e) {
+          console.error("Error fetching data: ", e);
+        }
+      }
+    }, 1000); // 1000ms delay
+
+    debouncedUpdateCartDB();
+  }, [updatedCart]);
 
   // _______ Direct to checkout page & pass the data to next page _______
   function directToCheckout() {
@@ -111,7 +144,6 @@ export function Cart() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-
   return (
     <>
       <div className="flex flex-col items-center min-h-screen bg-gray-100">
@@ -243,9 +275,9 @@ export function Cart() {
                           </td>
                           <td className="text-center font-bold text-lg">
                             $
-                            {total.map((eachTotal) => {
+                            {updatedCart.map((eachTotal) => {
                               if (eachTotal.item_id === item.item_id) {
-                                return formatter.format(eachTotal.total);
+                                return formatter.format(eachTotal.price);
                               }
                             })}
                           </td>
