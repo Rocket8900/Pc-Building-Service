@@ -1,25 +1,41 @@
 package models
 
 import (
-    "time"
+	"encoding/base64"
+	"time"
+
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
+var DB *gorm.DB
+
 type Repair struct {
-	repairID   string
-	userID   string `binding:"required"`
-	status   string `binding:"required"`
-	price   int 
+	RepairID  string `gorm:"primaryKey"`
+	UserID    string `binding:"required"`
+	Status    string `binding:"required"`
+	Price     int
 	CreatedAt time.Time `gorm:"autoCreateTime"`
-    UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+}
+
+func InitializeDB(db *gorm.DB) {
+	DB = db
 }
 
 func (r *Repair) BeforeCreate(tx *gorm.DB) (err error) {
-    r.CreatedAt = time.Now()
-    return nil
+	r.CreatedAt = time.Now()
+	r.RepairID = ShortUUID()
+	return nil
 }
 
 func (r *Repair) BeforeUpdate(tx *gorm.DB) (err error) {
-    r.UpdatedAt = time.Now()
-    return nil
+	r.UpdatedAt = time.Now()
+	return nil
+}
+
+func ShortUUID() string {
+	id := uuid.New()
+	encoded := base64.RawURLEncoding.EncodeToString(id[:])
+	return encoded[:7]
 }
