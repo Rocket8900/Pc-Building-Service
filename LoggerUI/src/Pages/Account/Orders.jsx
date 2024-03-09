@@ -11,12 +11,18 @@ export function Orders() {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5001/order/customer/${customerID}`
+          `http://localhost:8000/retrieve-customer-order`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ customer_id: customerID }),
+          }
         );
 
         if (response.status === 200) {
           const data = await response.json();
-          console.log("R: ", data);
           setOrders(data.data);
         }
       } catch (e) {

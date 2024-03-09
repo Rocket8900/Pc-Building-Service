@@ -12,9 +12,17 @@ export function OrderDetails() {
   useEffect(() => {
     const fetchOrder = async () => {
       try {
-        const response = await fetch(`http://localhost:5001/order/${orderID}`);
+        const response = await fetch(
+          `http://localhost:8000/retrieve-order-detail`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ orderID: orderID }),
+          }
+        );
         const data = await response.json();
-
         setCartItems(data.data);
       } catch (e) {
         console.error("Error fetching order", e);
