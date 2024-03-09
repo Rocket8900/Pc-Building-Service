@@ -14,18 +14,23 @@ export function Cart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          `http://localhost:5000/cart/${customerID}`
-        );
+        const response = await fetch(`http://localhost:8000/retrieve-cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ customer_id: customerID }),
+        });
 
         // If Response is ok, then update the cartItem state
         if (response.status === 200) {
           const data = await response.json();
-          console.log(data.data);
+
+          console.log(data);
           setCartItems(data.data.cart_item);
         }
       } catch (e) {
-        console.error("Error fetching data: ", e);
+        console.error("Error fetching cart: ", e);
       }
     };
 
@@ -125,12 +130,13 @@ export function Cart() {
   // _______ Clear Cart _______
   function clearCart() {
     const clearCart = async () => {
-      const response = await fetch(
-        `http://localhost:5000/cart/${customerID}/delete`,
-        {
-          method: "DELETE",
-        }
-      );
+      const response = await fetch(`http://localhost:8000/delete-cart`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ customer_id: customerID }),
+      });
       // Refresh the page after clearing cart
       if (response.status === 200) window.location.reload();
     };
@@ -144,6 +150,7 @@ export function Cart() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
   return (
     <>
       <div className="flex flex-col items-center min-h-screen bg-gray-100">

@@ -7,6 +7,7 @@ import { Elements } from "@stripe/react-stripe-js";
 export function Checkout() {
   const navigate = useNavigate();
   const location = useLocation(); // Retrieve data from previous screens
+  const { pathname } = useLocation();
 
   const [customerID, setCustomerId] = useState("");
   const [cartItems, setCartItems] = useState([]);
@@ -14,32 +15,20 @@ export function Checkout() {
   const [stripePromise, setStripePromise] = useState(null);
   const [clientSecret, setClientSecret] = useState("");
 
+  // ______ USED FOR FOCUSING ON TOP OF PAGE ON MOUNT ______
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
   // ______ RETRIEVE DATA FROM PREVIOUS PAGE ______
   useEffect(() => {
     // Redirect back to cart if null on mount
-    if (location.state == null) {
-      navigate("/cart");
-    } else {
-      console.log(location.state.cartItems);
-      console.log(location.state.total);
-      console.log(location.state.customerID);
+    if (location.state == null) navigate("/cart");
 
-      setCartItems(location.state.cartItems); // Retrieve cart from previous Cart Page
-      setTotal(location.state.total); // Retrieve total from previous Cart Page
-      setCustomerId(location.state.customerID); // Retrieve Customer ID from previous Cart Page
-    }
+    setCartItems(location.state.cartItems); // Retrieve cart from previous Cart Page
+    setTotal(location.state.total); // Retrieve total from previous Cart Page
+    setCustomerId(location.state.customerID); // Retrieve Customer ID from previous Cart Page
   }, [location.state, navigate]);
-
-  // // Reflect total amount on cartItem change [used on button]
-  // useEffect(() => {
-  //   if (total.length > 0) {
-  //     setFinalPrice(
-  //       total.reduce((sum, each) => {
-  //         return sum + each.total;
-  //       }, 0)
-  //     );
-  //   }
-  // }, [total]);
 
   // ______ STRIPE STUFF ______
   // To Fetch the Publishable key from Server (Stripe)
