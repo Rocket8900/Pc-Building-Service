@@ -8,8 +8,10 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
 
 cart_url = 'http://localhost:5000/retrieve-cart'
+#cart_url = 'http://localhost:5000/cart'
 order_url = 'http://localhost:5001/order'
 notification_url = 'http://localhost:5900/send-confirmation-email'
+parts_url = 'http://localhost:5002/parts'
 
 #1) Post cart data from Cart MS to Order MS, delete cart entry
 @app.route("/place_order/<customer_id>", methods=['POST'])
@@ -23,7 +25,19 @@ def sendCartDataToOrderDB(cart_data):
 def retrieveCustomerCart(customer_id):
     print('\n---- Retrieving Cart ----')
     order_result = invoke_http(cart_url, method='POST', json={"customer_id": customer_id})
-
+    #order_result = invoke_http(cart_url + '/' + customer_id, method='GET', json={"customer_id": customer_id})
+    for item in order_result['data']['cart_item']:
+        price = 0.0
+        for part in item['parts']:
+            partid = part['parts_id']
+            result_from_parts_ms = invoke_http(parts_url + '/' + str(partid), method='GET')
+            parts_name = result_from_parts_ms[0]['name']
+            parts_price = result_from_parts_ms[0]['price']
+            part['parts_name'] = parts_name
+            part['parts_price'] = float(parts_price)
+            price += float(parts_price)
+        item['price'] = price
+            
     if order_result['code'] == 404 or order_result['code'] == 500:
         print('---- Error in retrieving cart ----')
         return {
@@ -41,7 +55,13 @@ def retrieveCustomerCart(customer_id):
 @app.route("/place_order/cart/<customer_id>/total_price", methods=['GET'])
 def retrieveCustomerCartandBill(customer_id):
     print('----Invoking Cart Microservice----')
-    order_result = invoke_http(cart_url+'/'+customer_id+'/total_price', method='GET')
+    order_result = retrieveCustomerCart(customer_id)
+    total_price = 0.0
+    code = order_result['code']
+    for pc in order_result['data']['cart_item']:
+        total_price += pc['price']
+    output = {'code': code, 'total_price': total_price}
+    
     if order_result['code'] == 404 or order_result['code'] == 500:
         print('----Error in invoking Cart Microservice----')
         return {
@@ -52,8 +72,9 @@ def retrieveCustomerCartandBill(customer_id):
             "message": "Cart not found."
 
         }
-    print('order_result:', order_result)
-    return order_result
+    print('Total price:', output['total_price'])
+    return output
+    
 
 #4) Delete the whole cart 
 @app.route("/place_order/cart/<customer_id>/delete", methods=['DELETE'])
