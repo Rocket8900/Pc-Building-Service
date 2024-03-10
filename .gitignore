@@ -4,4 +4,4 @@ email service/.env
 email service/credentials.json
 notification-ms/.env
 LoggerUI/.vite/deps/_metadata.json
-**/.DS_Store
+**/.DS_Storeesd_venv/
