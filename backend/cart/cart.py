@@ -4,13 +4,15 @@ from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from sqlalchemy.orm import relationship
+from flask_cors import CORS
 
 
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 #'mysql+mysqlconnector://root:root@localhost:8889/cart'
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('dbURL')
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -77,8 +79,12 @@ class Parts_Item(db.Model):
         return {'item_id_parts': self.item_id_parts, 'parts_id': self.parts_id ,'quantity': self.quantity}
     
 #Get cart item of user
-@app.route("/cart/<customer_id>")
-def get_cart_item(customer_id):
+@app.route("/retrieve-cart", methods=["POST"])
+def get_cart_item():
+
+    # Retrieve the body for Customer ID
+    customer_id = request.json.get('customer_id', None) 
+
     cart = db.session.scalars(
         db.select(Cart).filter_by(customer_id=customer_id).limit(1)).first()
     if cart:
@@ -227,8 +233,10 @@ def delete_cart_item(customer_id, item_id):
         return jsonify({"code": 500,"message": "Failed to delete item", "error": str(e)}), 500
 
 #Delete the whole cart
-@app.route("/cart/<customer_id>/delete", methods=['DELETE'])
-def delete_cart(customer_id):
+@app.route("/delete-cart", methods=['DELETE'])
+def delete_cart():
+    customer_id = request.json.get('customer_id', None)
+    
     # Query the cart for the specified customer ID
     cart = Cart.query.filter_by(customer_id=customer_id).first()
     if not cart:

@@ -103,8 +103,11 @@ def get_all():
     ), 404
 
 #Get specific order
-@app.route("/order/<string:order_id>")
-def find_by_order_id(order_id):
+@app.route("/retrieve-order-detail",  methods=['POST'])
+def find_by_order_id():
+
+    order_id = request.json.get('orderID', None)
+
     order = db.session.scalars(
         db.select(Pc_Order).filter_by(order_id=order_id).limit(1)).first()
     if order:
@@ -146,8 +149,10 @@ def find_by_order_id(order_id):
     ), 404
 
 #Get orders by customer
-@app.route("/order/customer/<string:customer_id>")
-def find_by_customer_id(customer_id):
+@app.route("/retrieve-customer-order", methods=['POST'])
+def find_by_customer_id():
+
+    customer_id = request.json.get('customer_id', None)
     # Query all orders for the specified customer ID
     orders = Pc_Order.query.filter_by(customer_id=customer_id).all()
 
