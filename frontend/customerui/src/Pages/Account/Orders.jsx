@@ -11,7 +11,8 @@ export function Orders() {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/retrieve-customer-order`,
+          // http://localhost:8000/retrieve-customer-order (Kong)
+          `http://localhost:5001/retrieve-customer-order`,
           {
             method: "POST",
             headers: {

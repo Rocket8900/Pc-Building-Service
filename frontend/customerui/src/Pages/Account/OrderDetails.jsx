@@ -13,7 +13,8 @@ export function OrderDetails() {
     const fetchOrder = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/retrieve-order-detail`,
+          // http://localhost:8000/retrieve-order-detail (Kong)
+          `http://localhost:5001/retrieve-order-detail`,
           {
             method: "POST",
             headers: {
