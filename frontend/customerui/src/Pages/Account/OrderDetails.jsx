@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { RepairPopup } from "./RepairPopup";
 
 export function OrderDetails() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
+  const [repairPopup, setRepairPopup] = useState(false); // For toggling the popup
   let totalRef = useRef(0);
   let itemTotalRef = useRef(0);
   const searchParams = new URLSearchParams(window.location.search);
@@ -13,7 +15,8 @@ export function OrderDetails() {
     const fetchOrder = async () => {
       try {
         const response = await fetch(
-          `http://localhost:8000/retrieve-order-detail`,
+          // http://localhost:8000/retrieve-order-detail (Kong)
+          `http://localhost:5001/retrieve-order-detail`,
           {
             method: "POST",
             headers: {
@@ -42,12 +45,14 @@ export function OrderDetails() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-
-  console.log("FFF", cartItems);
-
   return (
     <>
       <div className="flex flex-col items-center min-h-screen bg-gray-100">
+        <RepairPopup
+          isOpen={repairPopup}
+          onClose={() => setRepairPopup(false)}
+          orderID={orderID}
+        />
         <div className="w-full max-w-6xl px-4 py-12 mt-5 bg-white shadow-lg rounded-lg">
           <h1 className="text-2xl font-bold mb-6">Order # {orderID}</h1>
           <div className="flex flex-col items-center justify-center h-full">
@@ -67,6 +72,12 @@ export function OrderDetails() {
                 {/* IF CART HAS ITEMS, DISPLAY THIS */}
                 <div className="bg-gray-100 p-4 rounded-lg">
                   <div className="flex justify-end">
+                    <button
+                      onClick={() => setRepairPopup(true)}
+                      className="bg-blue-500 hover:bg-blue-700 mr-3 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Send for repairs
+                    </button>
                     <button
                       onClick={directBackToAllOrders}
                       className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"

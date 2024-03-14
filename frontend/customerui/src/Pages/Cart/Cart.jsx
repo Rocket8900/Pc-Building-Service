@@ -14,7 +14,8 @@ export function Cart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:8000/retrieve-cart`, {
+        // http://localhost:8000/retrieve-cart (Kong)
+        const response = await fetch(`http://localhost:5000/retrieve-cart`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -130,7 +131,8 @@ export function Cart() {
   // _______ Clear Cart _______
   function clearCart() {
     const clearCart = async () => {
-      const response = await fetch(`http://localhost:8000/delete-cart`, {
+      // http://localhost:8000/delete-cart (Kong)
+      const response = await fetch(`http://localhost:5000/delete-cart`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

@@ -46,7 +46,7 @@ class Cart_Item(db.Model):
         'cart.cart_id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
 
     pc_name = db.Column(db.String(50), nullable=False)
-    price = db.Column(db.Float, nullable=False)
+
 
     cart = db.relationship(
         'Cart', primaryjoin='Cart_Item.cart_id == Cart.cart_id', backref='cart_item')
@@ -54,7 +54,7 @@ class Cart_Item(db.Model):
 
     def json(self):
         dto = {
-            'item_id': self.item_id, 'pc_name': self.pc_name, 'price': self.price,'cart_id': self.cart_id
+            'item_id': self.item_id, 'pc_name': self.pc_name, 'cart_id': self.cart_id
         }
 
         dto['parts_item'] = []
@@ -69,8 +69,6 @@ class Parts_Item(db.Model):
     parts_item_pri_key = db.Column(db.Integer, primary_key=True)
     item_id_parts = db.Column(db.Integer, db.ForeignKey(
         'cart_item.item_id', ondelete='CASCADE', onupdate='CASCADE'), nullable=False, index=True)
-    parts_name = db.Column(db.String(50), nullable=False)
-    parts_price = db.Column(db.Integer, nullable= False)
     quantity = db.Column(db.Integer, nullable=False)
 
     cart_item = relationship('Cart_Item', back_populates='parts_items')
@@ -78,7 +76,7 @@ class Parts_Item(db.Model):
         'Cart_Item', primaryjoin='Parts_Item.item_id_parts == Cart_Item.item_id', backref='parts_item')
 
     def json(self):
-        return {'item_id_parts': self.item_id_parts, 'parts_id': self.parts_id, 'parts_name': self.parts_name,'parts_price': self.parts_price ,'quantity': self.quantity}
+        return {'item_id_parts': self.item_id_parts, 'parts_id': self.parts_id ,'quantity': self.quantity}
     
 #Get cart item of user
 @app.route("/retrieve-cart", methods=["POST"])
@@ -99,14 +97,11 @@ def get_cart_item():
             cart_item_data ={
                 'parts': [],
                 'item_id': cart_item['item_id'],
-                "pc_name": cart_item['pc_name'],
-                "price": cart_item['price']
+                "pc_name": cart_item['pc_name']
             }
             for part_item in cart_item['parts_item']:
                 cart_item_data['parts'].append({
                     "parts_id": part_item['parts_id'],
-                    'parts_name': part_item['parts_name'],
-                    'parts_price': part_item['parts_price'],
                     "quantity": part_item['quantity']
                 })
             cart_data['cart_item'].append(cart_item_data)
@@ -158,11 +153,11 @@ def create_cart():
     cart = Cart(customer_id=customer_id)
     cart_items = request.json.get('cart_item')
     for item in cart_items:
-        cart_item = Cart_Item(pc_name=item['pc_name'], cart_id=cart.cart_id, price=item['price'])  # Set cart_id here
+        cart_item = Cart_Item(pc_name=item['pc_name'], cart_id=cart.cart_id)  # Set cart_id here
         parts = item.get('parts', [])
         for part in parts:
             cart_item.parts_item.append(Parts_Item(
-                parts_id=part['parts_id'], quantity=part['quantity'], parts_price=part['parts_price'], parts_name=part['parts_name']
+                parts_id=part['parts_id'], quantity=part['quantity']
             ))
         cart.cart_item.append(cart_item)
     try:
@@ -199,14 +194,11 @@ def construct_cart_data(cart):
             "item_id": cart_item.item_id,
             "cart_id": cart_item.cart_id,
             "parts": [],  # Initialize parts list for the cart item
-            "pc_name": cart_item.pc_name,
-            "price": cart_item.price
+            "pc_name": cart_item.pc_name 
         }
         for part_item in cart_item.parts_item:
             cart_item_data["parts"].append({
                 "parts_id": part_item.parts_id,
-                'parts_name': part_item.parts_name,
-                "parts_price": part_item.parts_price,
                 "quantity": part_item.quantity
             })
         cart_data["cart_item"].append(cart_item_data)
@@ -244,6 +236,7 @@ def delete_cart_item(customer_id, item_id):
 @app.route("/delete-cart", methods=['DELETE'])
 def delete_cart():
     customer_id = request.json.get('customer_id', None)
+    
     # Query the cart for the specified customer ID
     cart = Cart.query.filter_by(customer_id=customer_id).first()
     if not cart:

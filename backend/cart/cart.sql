@@ -18,7 +18,6 @@ DROP TABLE IF EXISTS `cart_item`;
 CREATE TABLE IF NOT EXISTS `cart_item` (
   `item_id` int(11) NOT NULL AUTO_INCREMENT,
   `cart_id` int(11) NOT NULL,
-  `price` int(11) NOT NULL,
   `pc_name` varchar(50) NOT NULL,
   PRIMARY KEY (`item_id`),
   KEY `FK_cart_id` (`cart_id`)
@@ -33,8 +32,6 @@ CREATE TABLE IF NOT EXISTS `parts_item` (
   `item_id_parts` int(11) NOT NULL,
   `parts_item_pri_key` int(11) NOT NULL AUTO_INCREMENT,
   `parts_id` int(11) NOT NULL,
-  `parts_name` varchar(50) NOT NULL,
-  `parts_price` int(11) NOT NULL,
   `quantity` int(11) NOT NULL,
   PRIMARY KEY (`parts_item_pri_key`),
   KEY `FK_parts_item` (`item_id_parts`)
