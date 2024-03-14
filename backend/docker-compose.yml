@@ -55,7 +55,7 @@ services:
     environment:
       - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
     ports:
-      - "5000:5000"
+      - "5002:5000"
     networks:
       - kong-net
     restart: always
@@ -184,7 +184,7 @@ services:
       POSTGRES_USER: kong
       POSTGRES_PASSWORD: password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "kong"]
       interval: 10s
