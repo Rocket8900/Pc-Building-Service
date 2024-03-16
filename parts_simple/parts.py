@@ -1,10 +1,12 @@
 import psycopg2
-from flask import Flask, jsonify, request
+from flask import Flask, request, jsonify
 from flask_cors import CORS
+from os import environ
 
 
 app = Flask(__name__)
 CORS(app)
+    
 
 # Define your database connection parameters
 conn_params = {
@@ -15,177 +17,315 @@ conn_params = {
     'port': '5432'
 }
 
-def fetch_all_posts():
+from flask import request
+
+@app.route('/all-parts', methods=['POST'])
+def fetch_all_parts():
     try:
+
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
-        cur.execute('SELECT * FROM parts_table ORDER BY partid;')  # Adjust SQL query as needed
+        cur.execute('SELECT * FROM parts_table ORDER BY part_id;')  # Adjust SQL query as needed
         rows = cur.fetchall()
 
         # Convert rows to JSON format
-        post_data = [{'partid': row[0], 'name': row[1], 'category': row[2], 'quantity': row[3], 'price': row[4]} for row in rows]
+        post_data = [{'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3]} for row in rows]
 
         cur.close()
         conn.close()
 
-        return post_data
+        return jsonify(post_data), 200
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
-        return []
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
 
-def fetch_post_by_id(partid):
+@app.route('/parts/name', methods=['POST'])
+def fetch_parts_by_name():
     try:
+        data = request.json
+        name = data.get('part_name', None)
+        
+        if name is None:
+            return jsonify({'error': 'Name is missing in the request.'}), 400
+
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
-        cur.execute('SELECT * FROM parts_table WHERE partid = %s;', (partid,))
+        # Use ILIKE for case-insensitive search
+        cur.execute("SELECT * FROM parts_table WHERE part_name ILIKE %s;", ('%' + name + '%',))
+        rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        if rows:
+            post_data = [{'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3]} for row in rows]
+            return jsonify(post_data), 200
+        else:
+            return jsonify({'error': 'No parts found for this name'}), 404
+    except psycopg2.Error as e:
+        print("Error fetching data from PostgreSQL:", e)
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
+
+@app.route('/parts/price-range', methods=['POST'])
+def fetch_parts_by_price_range():
+    try:
+        data = request.json
+        min_price = data.get('min_price', None)
+        max_price = data.get('max_price', None)
+        
+        if min_price is None or max_price is None:
+            return jsonify({'error': 'Price range is missing in the request.'}), 400
+
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+
+        cur.execute("SELECT * FROM parts_table WHERE part_price BETWEEN %s AND %s;", (min_price, max_price,))
+        rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        if rows:
+            post_data = [{'partid': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3]} for row in rows]
+            return jsonify(post_data), 200
+        else:
+            return jsonify({'error': 'No parts found within the price range'}), 404
+    except psycopg2.Error as e:
+        print("Error fetching data from PostgreSQL:", e)
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
+
+@app.route('/part', methods=['POST'])
+def fetch_part_by_id():
+    try:
+        # Retrieve the part ID from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id', None)
+        
+        if part_id is None:
+            return jsonify({'error': 'Part ID is missing in the request.'}), 400
+
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+
+        cur.execute('SELECT * FROM parts_table WHERE part_id = %s;', (part_id,))
         row = cur.fetchone()
 
         cur.close()
         conn.close()
 
         if row:
-            post_data = [{'partid': row[0], 'name': row[1], 'category': row[2], 'quantity': row[3], 'price': row[4]}]
-            return post_data
+            post_data = {'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3]}
+            return jsonify(post_data), 200
         else:
-            return {'error': 'Part not found'}
+            return jsonify({'error': 'Part not found'}), 404
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
-        return {'error': 'Failed to fetch data from database'}
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
     
-def fetch_posts_by_category(category):
+@app.route('/part/name', methods=['POST'])
+def fetch_part_name_by_id():
     try:
-        conn = psycopg2.connect(**conn_params)
-        cur = conn.cursor()
-
-        cur.execute('SELECT * FROM parts_table WHERE category ILIKE %s;', (category,))
-        rows = cur.fetchall()
+        # Retrieve the part ID from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id', None)
         
+        if part_id is None:
+            return jsonify({'error': 'Part ID is missing in the request.'}), 400
+
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+
+        cur.execute('SELECT part_name FROM parts_table WHERE part_id = %s;', (part_id,))
+        row = cur.fetchone()
+
         cur.close()
         conn.close()
 
-        if rows:
-            posts_data = [{'partid': row[0], 'name': row[1], 'category': row[2], 'quantity': row[3], 'price': row[4]} for row in rows]
-            return posts_data
+        if row:
+            part_name = row[0]
+            return jsonify({'part_name': part_name}), 200
+        else:
+            return jsonify({'error': 'Part not found'}), 404
+    except psycopg2.Error as e:
+        print("Error fetching data from PostgreSQL:", e)
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
+
+@app.route('/part/price', methods=['POST'])
+def fetch_part_price_by_id():
+    try:
+        # Retrieve the part ID from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id', None)
         
-        else:
-            return {'error': 'No parts found for this category'}
-    except psycopg2.Error as e:
-        print("Error fetching data from PostgreSQL:", e)
-        return {'error': 'Failed to fetch data from database'}
+        if part_id is None:
+            return jsonify({'error': 'Part ID is missing in the request.'}), 400
 
-def fetch_post_by_name(name):
-    try:
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
-    
-        # Use ILIKE for case-insensitive search
-        cur.execute("SELECT * FROM parts_table WHERE name ILIKE %s;", ('%' + name + '%',))
-        rows = cur.fetchall()
+        cur.execute('SELECT part_price FROM parts_table WHERE part_id = %s;', (part_id,))
+        row = cur.fetchone()
 
         cur.close()
         conn.close()
 
-        if rows:
-            post_data = [{'partid': row[0], 'name': row[1], 'category': row[2], 'quantity': row[3], 'price': row[4]} for row in rows]
-            return post_data
+        if row:
+            part_price = row[0]
+            return jsonify({'part_price': part_price}), 200
         else:
-            return {'error': 'No parts found for this name'}
+            return jsonify({'error': 'Part not found'}), 404
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
-        return {'error': 'Failed to fetch data from database'}
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
 
-def fetch_posts_by_price_range(min_price, max_price):
+@app.route('/part/quantity', methods=['POST'])
+def fetch_part_quantity_by_id():
     try:
+        # Retrieve the part ID from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id', None)
+        
+        if part_id is None:
+            return jsonify({'error': 'Part ID is missing in the request.'}), 400
+
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM parts_table WHERE price BETWEEN %s AND %s;", (min_price, max_price,))
-        rows = cur.fetchall()
+        cur.execute('SELECT quantity FROM parts_table WHERE part_id = %s;', (part_id,))
+        row = cur.fetchone()
 
         cur.close()
         conn.close()
 
-        if rows:
-            post_data = [{'partid': row[0], 'name': row[1], 'category': row[2], 'quantity': row[3], 'price': row[4]} for row in rows]
-            return post_data
+        if row:
+            part_quantity = row[0]
+            return jsonify({'part_quantity': part_quantity}), 200
         else:
-            return {'error': 'No parts found within the price range'}
+            return jsonify({'error': 'Part not found'}), 404
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
-        return {'error': 'Failed to fetch data from database'}
+        return jsonify({'error': 'Failed to fetch data from database'}), 500
 
-def update_post(name, category, quantity, price, partid):
+@app.route('/part/update', methods=['PUT'])
+def update_part_details():
     try:
+        # Retrieve part details from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id')
+        new_part_name = data.get('part_name')
+        new_quantity = data.get('quantity')
+        new_part_price = data.get('part_price')
+        
+        if not part_id:
+            return jsonify({'error': 'Part ID is missing in the request.'}), 400
+
+        # Connect to the database
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
-        cur.execute('UPDATE parts_table SET name=%s, category=%s, quantity=%s, price=%s WHERE partid=%s;',
-                    (name, category, quantity, price, partid))
+        # Check if the part exists
+        cur.execute('SELECT * FROM parts_table WHERE part_id = %s;', (part_id,))
+        row = cur.fetchone()
+        if not row:
+            return jsonify({'error': 'Part not found'}), 404
+
+        # Update the part details
+        update_query = """
+            UPDATE parts_table 
+            SET part_name = %s, quantity = %s, part_price = %s
+            WHERE part_id = %s;
+        """
+        cur.execute(update_query, (new_part_name, new_quantity, new_part_price, part_id))
         conn.commit()
 
-        # Order the rows by partid after updating
-        cur.execute('SELECT * FROM parts_table ORDER BY partid;')
-        rows = cur.fetchall()
+        cur.close()
+        conn.close()
+
+        return jsonify({'message': 'Part details updated successfully'}), 200
+    except psycopg2.Error as e:
+        print("Error updating part details:", e)
+        return jsonify({'error': 'Failed to update part details'}), 500
+
+@app.route('/part/delete', methods=['DELETE'])
+def delete_part():
+    try:
+        # Retrieve part ID from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id')
+        
+        if not part_id:
+            return jsonify({'error': 'Part ID is missing in the request.'}), 400
+
+        # Connect to the database
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+
+        # Check if the part exists
+        cur.execute('SELECT * FROM parts_table WHERE part_id = %s;', (part_id,))
+        row = cur.fetchone()
+        if not row:
+            return jsonify({'error': 'Part not found'}), 404
+
+        # Delete the part
+        delete_query = """
+            DELETE FROM parts_table 
+            WHERE part_id = %s;
+        """
+        cur.execute(delete_query, (part_id,))
+        conn.commit()
 
         cur.close()
         conn.close()
 
-        return rows
+        return jsonify({'message': 'Part deleted successfully'}), 200
     except psycopg2.Error as e:
-        print("Error updating data in PostgreSQL:", e)
-        return None
+        print("Error deleting part:", e)
+        return jsonify({'error': 'Failed to delete part'}), 500
 
-@app.route('/parts', methods=['GET'])
-def get_posts():
-    post_data = fetch_all_posts()
-    return jsonify(post_data)
+@app.route('/part/add', methods=['POST'])
+def add_part():
+    try:
+        # Retrieve part details from the request JSON payload
+        data = request.json
+        part_id = data.get('part_id')
+        part_name = data.get('part_name')
+        quantity = data.get('quantity')
+        part_price = data.get('part_price')
+        
+        if not part_name or not quantity or not part_price:
+            return jsonify({'error': 'Missing required fields in the request.'}), 400
 
-@app.route('/parts/<int:partid>', methods=['GET'])
-def get_post_by_id(partid):
-    post_data = fetch_post_by_id(partid)
-    return jsonify(post_data)
-    
-@app.route('/parts/category/<string:category>', methods=['GET'])    
-def get_posts_by_category(category): 
-    post_data = fetch_posts_by_category(category)
-    return jsonify(post_data)
+        # Connect to the database
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
 
-@app.route('/parts/name/<string:name>', methods=['GET'])
-def get_posts_by_name(name):
-    post_data = fetch_post_by_name(name)
-    return jsonify(post_data)
+        # Check if the part ID already exists in the database
+        cur.execute("SELECT EXISTS(SELECT 1 FROM parts_table WHERE part_id = %s);", (part_id,))
+        part_exists = cur.fetchone()[0]
+        if part_exists:
+            return jsonify({'error': 'Part ID already exists in the database.'}), 400
 
-@app.route('/parts/price/<int:min_price>/<int:max_price>', methods=['GET'])
-@app.route('/parts/price/<float:min_price>/<float:max_price>', methods=['GET'])
-def get_posts_by_price_range(min_price, max_price):
-    post_data = fetch_posts_by_price_range(min_price, max_price)
-    return jsonify(post_data)
+        # Insert the new part into the database
+        insert_query = """
+            INSERT INTO parts_table (part_id, part_name, quantity, part_price) 
+            VALUES (%s, %s, %s, %s) RETURNING part_id;
+        """
+        cur.execute(insert_query, (part_id, part_name, quantity, part_price))
+        new_part_id = cur.fetchone()[0]
+        conn.commit()
 
-@app.route('/parts/<int:partid>', methods=['PUT'])
-def update_existing_post(partid):
-    data = request.json
-    
-    # Extract data from request
-    name = data.get('name')
-    category = data.get('category')
-    quantity = data.get('quantity')
-    price = data.get('price')
+        cur.close()
+        conn.close()
 
-    # Check if all required fields are present
-    if not (name and category and quantity and price):
-        return jsonify({'error': 'Missing required fields'}), 400
+        return jsonify({'message': 'Part added successfully', 'part_id': new_part_id}), 200
+    except psycopg2.Error as e:
+        print("Error adding part:", e)
+        return jsonify({'error': 'Failed to add part'}), 500
 
-    # Update the post in the database
-    updated_rows = update_post(name, category, quantity, price, partid)
-    
-    if updated_rows is not None:
-        return jsonify({'success': 'Post updated successfully', 'updated_rows': updated_rows}), 200
-    else:
-        return jsonify({'error': 'Failed to update post'}), 500
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', port =  5002, debug = True)
+    app.run(host = '0.0.0.0', port =  5000, debug = True)
+
 
