@@ -1,0 +1,271 @@
+import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect, useCallback } from "react";
+import { debounce } from "lodash";
+
+export function Cart() {
+  const navigate = useNavigate();
+
+  const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(undefined);
+  const [partDetails, setPartDetails] = useState(undefined);
+  const customerID = "Salah";
+
+  // Get Cart Data & Total bill on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // http://localhost:8000/retrieve-cart (Kong)
+        const response = await fetch(`http://localhost:5002/retrieve-cart`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ customer_id: customerID }),
+        });
+
+        // If Response is ok, then update the cartItem state
+        if (response.status === 200) {
+          const data = await response.json();
+          let cartData = data.data.cart_item;
+
+          setCartItems(cartData);
+
+          const partDetailList = {};
+          const cartTotal = {};
+          // Fetch part details for each part in the cart
+          for (const item of cartData) {
+            let itemTotal = 0;
+            for (const part of item.parts) {
+              const partsResponse = await fetch("http://localhost:5950/part", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ part_id: part.parts_id }),
+              });
+
+              if (partsResponse.status == 200) {
+                const partDetails = await partsResponse.json();
+                itemTotal += partDetails.part_price * partDetails.quantity;
+                partDetailList[part.parts_id] = partDetails;
+              }
+            }
+            cartTotal[item.item_id] = parseFloat(itemTotal.toFixed(2));
+          }
+
+          setPartDetails(partDetailList);
+          setCartTotal(cartTotal);
+        }
+      } catch (e) {
+        console.error("Error fetching cart: ", e);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // _______ Update the Cart DB _______
+  function deleteItemFromDb(item_id) {
+    // Debounce to limit the frequency of calls
+    const debouncedUpdateCartDB = debounce(async () => {
+      const payload = { customer_id: customerID, item_id: item_id };
+
+      try {
+        const response = await fetch(`http://localhost:5002/delete-item`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.status == 200) window.location.reload();
+      } catch (e) {
+        console.error("Error fetching data: ", e);
+      }
+    }, 1000); // 1000ms delay
+
+    debouncedUpdateCartDB();
+  }
+
+  // _______ Direct to checkout page & pass the data to next page _______
+  function directToCheckout() {
+    navigate("/checkout", {
+      state: { cartItems, cartTotal, partDetails, customerID },
+    });
+  }
+
+  // _______ Direct to build page _______
+  function directToBuild() {
+    navigate("/build-pc");
+  }
+
+  // _______ Handle Remove From Cart _______
+  const handleRemoveFromCart = (itemId) => {
+    const updatedCartItems = cartItems.filter(
+      (item) => item.item_id !== itemId
+    );
+    setCartItems(updatedCartItems);
+    deleteItemFromDb(itemId);
+  };
+
+  // _______ Clear Cart _______
+  function clearCart() {
+    const clearCart = async () => {
+      // http://localhost:8000/delete-cart (Kong)
+      const response = await fetch(`http://localhost:5002/delete-cart`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ customer_id: customerID }),
+      });
+      // Refresh the page after clearing cart
+      if (response.status === 200) window.location.reload();
+    };
+
+    clearCart();
+  }
+
+  // _______ Formatter _______
+  const formatter = new Intl.NumberFormat("en-US", {
+    style: "decimal",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  console.log(cartTotal);
+
+  return (
+    <>
+      <div className="flex flex-col items-center min-h-screen bg-gray-100">
+        <div className="w-full max-w-6xl px-4 py-12 mt-5 bg-white shadow-lg rounded-lg">
+          <h1 className="text-2xl font-bold mb-6">Your Shopping Cart</h1>
+          <div className="flex flex-col items-center justify-center h-full">
+            {/* IF CART IS EMPTY, DISPLAY THIS */}
+            {cartItems.length === 0 ? (
+              <div className="bg-gray-100 p-4 rounded-lg">
+                <p className="text-lg font-semibold">Your cart is empty.</p>
+                <button
+                  onClick={directToBuild}
+                  className="bg-gray-700 mt-3 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
+                >
+                  Build Your PC!
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* IF CART HAS ITEMS, DISPLAY THIS */}
+                <div className="bg-gray-100 p-4 rounded-lg">
+                  <div className="flex justify-end">
+                    <button
+                      onClick={clearCart}
+                      className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    >
+                      Clear Cart
+                    </button>
+                  </div>
+                  {/* EACH PC */}
+                  {cartItems.map((item) => (
+                    <table
+                      key={item.item_id}
+                      className="min-w-full divide-y divide-gray-200 mt-3"
+                    >
+                      <thead className="bg-gray-50">
+                        {/* PC NAME */}
+                        <tr>
+                          <th
+                            colSpan="4"
+                            className="px-6 py-3 text-center text-md font-medium text-gray-500 uppercase tracking-wider"
+                          >
+                            {item.pc_name}
+                          </th>
+                        </tr>
+                        {/* PC PARTS TITLE */}
+                        <tr>
+                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Product
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Price
+                          </th>
+                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Quantity
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {/* EACH PART */}
+                        {item.parts.map((part) => (
+                          <tr key={part.parts_id} className="text-gray-700">
+                            {/* Part Name */}
+                            <td className="px-6 py-4 whitespace-nowrap">
+                              <div className="text-sm text-left font-medium text-gray-900">
+                                {partDetails
+                                  ? partDetails[part.parts_id].part_name
+                                  : ""}
+                              </div>
+                            </td>
+                            {/* Part Price */}
+                            <td className="text-sm text-gray-500">
+                              $
+                              {partDetails
+                                ? formatter.format(
+                                    partDetails[part.parts_id].part_price
+                                  )
+                                : ""}
+                            </td>
+                            {/* Part Quantity */}
+                            <td className="text-center">
+                              <div className="flex justify-center space-x-2">
+                                <span className="border border-gray-300 rounded-md px-3 py-1">
+                                  {part.quantity}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                        <tr className="bg-gray-100 mt-3">
+                          <td>
+                            <div className="flex justify-start mt-3 ml-3">
+                              <button
+                                onClick={() =>
+                                  handleRemoveFromCart(item.item_id)
+                                }
+                                className="bg-blue-700 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
+                              >
+                                Remove PC
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="text-right font-bold text-lg">
+                            <div className="flex justify-start mt-3">Total</div>
+                          </td>
+                          <td className="text-center font-bold text-lg">
+                            <div className="flex justify-start mt-3">
+                              $
+                              {cartTotal
+                                ? formatter.format(cartTotal[item.item_id])
+                                : ""}
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  ))}
+                </div>
+                <button
+                  onClick={directToCheckout}
+                  className="bg-gray-700 mt-3 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
+                >
+                  Checkout!
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
