@@ -1,5 +1,11 @@
+// For AMQP
+const amqp = require("amqplib");
+
 // To access env variables
 require("dotenv").config();
+
+// AMQP Exchange
+const exchangeName = "ESDTimez";
 
 // For Express Server
 const express = require("express");
@@ -75,6 +81,7 @@ app.listen(port, () => {
 
 // This iterates through all cart_items to calculate the total price
 function getTotalCost(cart_items) {
+  total = 0.0;
   cart_items.map((item) => {
     item.parts.map((part) => {
       total += part.parts_price * part.quantity;

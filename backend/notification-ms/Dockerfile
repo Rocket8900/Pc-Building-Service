@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 5900
 
 # Define the command to run your app using CMD which defines your runtime
-CMD [ "node", "server.js" ]
+CMD [ "node", "server2.js" ]

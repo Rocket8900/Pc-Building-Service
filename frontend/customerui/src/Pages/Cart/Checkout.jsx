@@ -10,8 +10,10 @@ export function Checkout() {
   const { pathname } = useLocation();
 
   const [customerID, setCustomerId] = useState("");
-  const [cartItems, setCartItems] = useState([]);
-  const [total, setTotal] = useState([]);
+  const [cartItems, setCartItems] = useState();
+  const [cartTotal, setCartTotal] = useState();
+  const [partDetails, setPartDetails] = useState();
+  const [total, setTotal] = useState(0);
   const [stripePromise, setStripePromise] = useState(null);
   const [clientSecret, setClientSecret] = useState("");
 
@@ -23,10 +25,11 @@ export function Checkout() {
   // ______ RETRIEVE DATA FROM PREVIOUS PAGE ______
   useEffect(() => {
     // Redirect back to cart if null on mount
-    if (location.state == null) navigate("/cart");
+    if (location.state == undefined) navigate("/cart");
 
     setCartItems(location.state.cartItems); // Retrieve cart from previous Cart Page
-    setTotal(location.state.total); // Retrieve total from previous Cart Page
+    setCartTotal(location.state.cartTotal); // Retrieve cart total from previous Cart Page
+    setPartDetails(location.state.partDetails); // Retrieve cart from previous Cart Page
     setCustomerId(location.state.customerID); // Retrieve Customer ID from previous Cart Page
   }, [location.state, navigate]);
 
@@ -42,12 +45,21 @@ export function Checkout() {
   }, []);
 
   useEffect(() => {
-    if (total != 0) directToStripePayment();
+    if (cartTotal != undefined) {
+      Object.entries(cartTotal).forEach(([item_id, price]) => {
+        setTotal((prev) => prev + parseFloat(price));
+      });
+    }
+  }, [cartTotal]);
+
+  useEffect(() => {
+    if (total != 0) {
+      directToStripePayment();
+    }
   }, [total]);
 
   // http://localhost:3400/create-payment-intent
   async function directToStripePayment() {
-    console.log("FFFF");
     const clientSecret = await fetch(
       // http://localhost:8000/api/v1/create-payment-intent (Kong)
       "http://localhost:3400/api/v1/create-payment-intent",
@@ -74,7 +86,7 @@ export function Checkout() {
     navigate("/cart");
   }
 
-  console.log(cartItems);
+  console.log(cartTotal);
 
   return (
     <>
@@ -93,68 +105,75 @@ export function Checkout() {
               </button>
               <h3 className="text-lg font-semibold mt-3 mb-4">Order Summary</h3>
               <div className="overflow-x-auto">
-                {cartItems.map((item) => (
-                  <table
-                    key={item.item_id}
-                    className="min-w-full divide-y divide-gray-200 mt-3"
-                  >
-                    <thead className="bg-gray-50">
-                      <tr className="text-gray-700">
-                        <th
-                          colSpan="4"
-                          className="px-6 py-3 text-center text-md font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {item.pc_name}
-                        </th>
-                      </tr>
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Product
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Price
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Quantity
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {item.parts.map((part) => (
-                        <tr key={part.parts_id} className="text-gray-700">
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-left font-medium text-gray-900">
-                              {part.parts_name}
-                            </div>
-                          </td>
-                          <td className="text-sm text-gray-500">
-                            ${formatter.format(part.parts_price)}
-                          </td>
-                          <td className="text-center">
-                            <div className="flex justify-center space-x-2">
-                              <span className="border border-gray-300 rounded-md px-3 py-1">
-                                {part.quantity}
-                              </span>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                      <tr className="bg-gray-100">
-                        <td
-                          colSpan="3"
-                          className="font-bold text-right-total text-lg px-6 py-2 whitespace-nowrap"
-                        >
-                          Total: $
-                          {cartItems.map((eachItem) => {
-                            if (eachItem.item_id === item.item_id) {
-                              return formatter.format(eachItem.price);
-                            }
-                          })}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                ))}
+                {cartItems
+                  ? cartItems.map((item) => (
+                      <table
+                        key={item.item_id}
+                        className="min-w-full divide-y divide-gray-200 mt-3"
+                      >
+                        <thead className="bg-gray-50">
+                          <tr className="text-gray-700">
+                            <th
+                              colSpan="4"
+                              className="px-6 py-3 text-center text-md font-medium text-gray-500 uppercase tracking-wider"
+                            >
+                              {item.pc_name}
+                            </th>
+                          </tr>
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Product
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Price
+                            </th>
+                            <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Quantity
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {item.parts.map((part) => (
+                            <tr key={part.parts_id} className="text-gray-700">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-left font-medium text-gray-900">
+                                  {partDetails
+                                    ? partDetails[part.parts_id].part_name
+                                    : ""}
+                                </div>
+                              </td>
+                              <td className="text-sm text-gray-500">
+                                $
+                                {partDetails
+                                  ? formatter.format(
+                                      partDetails[part.parts_id].part_price
+                                    )
+                                  : ""}
+                              </td>
+                              <td className="text-center">
+                                <div className="flex justify-center space-x-2">
+                                  <span className="border border-gray-300 rounded-md px-3 py-1">
+                                    {part.quantity}
+                                  </span>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="bg-gray-100">
+                            <td
+                              colSpan="3"
+                              className="font-bold text-right-total text-lg px-6 py-2 whitespace-nowrap"
+                            >
+                              Total: $
+                              {cartTotal
+                                ? formatter.format(cartTotal[item.item_id])
+                                : ""}
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    ))
+                  : ""}
               </div>
               {/* Total price display */}
               <div className="bg-gray-100 p-6 rounded-lg shadow-md">

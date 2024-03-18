@@ -6,8 +6,8 @@ export function Cart() {
   const navigate = useNavigate();
 
   const [cartItems, setCartItems] = useState([]);
-  const [updatedCart, setUpdatedCart] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [cartTotal, setCartTotal] = useState(undefined);
+  const [partDetails, setPartDetails] = useState(undefined);
   const customerID = "Salah";
 
   // Get Cart Data & Total bill on mount
@@ -15,7 +15,7 @@ export function Cart() {
     const fetchData = async () => {
       try {
         // http://localhost:8000/retrieve-cart (Kong)
-        const response = await fetch(`http://localhost:5000/retrieve-cart`, {
+        const response = await fetch(`http://localhost:5002/retrieve-cart`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -26,9 +26,35 @@ export function Cart() {
         // If Response is ok, then update the cartItem state
         if (response.status === 200) {
           const data = await response.json();
+          let cartData = data.data.cart_item;
 
-          console.log(data);
-          setCartItems(data.data.cart_item);
+          setCartItems(cartData);
+
+          const partDetailList = {};
+          const cartTotal = {};
+          // Fetch part details for each part in the cart
+          for (const item of cartData) {
+            let itemTotal = 0;
+            for (const part of item.parts) {
+              const partsResponse = await fetch("http://localhost:5950/part", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ part_id: part.parts_id }),
+              });
+
+              if (partsResponse.status == 200) {
+                const partDetails = await partsResponse.json();
+                itemTotal += partDetails.part_price * partDetails.quantity;
+                partDetailList[part.parts_id] = partDetails;
+              }
+            }
+            cartTotal[item.item_id] = parseFloat(itemTotal.toFixed(2));
+          }
+
+          setPartDetails(partDetailList);
+          setCartTotal(cartTotal);
         }
       } catch (e) {
         console.error("Error fetching cart: ", e);
@@ -38,51 +64,35 @@ export function Cart() {
     fetchData();
   }, []);
 
-  // _______ When the cart updates _______
-  useEffect(() => {
-    let temp2Total = 0; // For storing total cart value
-    const newCart = cartItems.map((item) => {
-      let tempTotal = 0; // For storing total value of each item
-      const parts = item.parts.map((part) => {
-        tempTotal += part.parts_price * part.quantity;
-        return part;
-      });
-      temp2Total += tempTotal;
-      return { ...item, parts, price: tempTotal };
-    });
-
-    setTotal(temp2Total);
-    setUpdatedCart(newCart);
-  }, [cartItems]);
-
   // _______ Update the Cart DB _______
-  useEffect(() => {
-    console.log("Called");
+  function deleteItemFromDb(item_id) {
     // Debounce to limit the frequency of calls
     const debouncedUpdateCartDB = debounce(async () => {
-      if (updatedCart.length > 0) {
-        const payload = { customer_id: "Salah", cart_item: [...updatedCart] };
+      const payload = { customer_id: customerID, item_id: item_id };
 
-        try {
-          const response = await fetch(`http://localhost:5000/cart`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(payload),
-          });
-        } catch (e) {
-          console.error("Error fetching data: ", e);
-        }
+      try {
+        const response = await fetch(`http://localhost:5002/delete-item`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (response.status == 200) window.location.reload();
+      } catch (e) {
+        console.error("Error fetching data: ", e);
       }
     }, 1000); // 1000ms delay
 
     debouncedUpdateCartDB();
-  }, [updatedCart]);
+  }
 
   // _______ Direct to checkout page & pass the data to next page _______
   function directToCheckout() {
-    navigate("/checkout", { state: { cartItems, total, customerID } });
+    navigate("/checkout", {
+      state: { cartItems, cartTotal, partDetails, customerID },
+    });
   }
 
   // _______ Direct to build page _______
@@ -90,49 +100,20 @@ export function Cart() {
     navigate("/build-pc");
   }
 
-  // _______ Handle Quantity Change _______
-  const handleQuantityChange = (itemId, partsId, newQuantity) => {
-    const updatedCartItems = cartItems.map((item) => {
-      // Check if the current item matches the itemId
-      if (item.item_id === itemId) {
-        // Map over the parts to find and update the specific part
-        const updatedParts = item.parts.map((part) => {
-          // If the part matches the partsId, update its quantity
-          if (part.parts_id === partsId) {
-            return { ...part, quantity: newQuantity };
-          }
-          // Otherwise, return the part unchanged
-          return part;
-        });
-        // Return a new item object with the updated parts array
-        return { ...item, parts: updatedParts };
-      }
-      // If the current item does not match the itemId, return it unchanged
-      return item;
-    });
-    // Update the cartItems state with the new updatedCartItems
-    setCartItems(updatedCartItems);
-  };
-
   // _______ Handle Remove From Cart _______
-  const handleRemoveFromCart = (itemId, partsId) => {
-    const updatedCartItems = cartItems.map((item) => {
-      if (item.item_id === itemId) {
-        const updatedParts = item.parts.filter(
-          (part) => part.parts_id !== partsId
-        );
-        return { ...item, parts: updatedParts }; // Return removed part
-      }
-      return item; // Unchanged item
-    });
+  const handleRemoveFromCart = (itemId) => {
+    const updatedCartItems = cartItems.filter(
+      (item) => item.item_id !== itemId
+    );
     setCartItems(updatedCartItems);
+    deleteItemFromDb(itemId);
   };
 
   // _______ Clear Cart _______
   function clearCart() {
     const clearCart = async () => {
       // http://localhost:8000/delete-cart (Kong)
-      const response = await fetch(`http://localhost:5000/delete-cart`, {
+      const response = await fetch(`http://localhost:5002/delete-cart`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -152,6 +133,8 @@ export function Cart() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
+  console.log(cartTotal);
 
   return (
     <>
@@ -209,9 +192,6 @@ export function Cart() {
                           <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Quantity
                           </th>
-                          <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Action
-                          </th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -221,74 +201,54 @@ export function Cart() {
                             {/* Part Name */}
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div className="text-sm text-left font-medium text-gray-900">
-                                {part.parts_name}
+                                {partDetails
+                                  ? partDetails[part.parts_id].part_name
+                                  : ""}
                               </div>
                             </td>
                             {/* Part Price */}
                             <td className="text-sm text-gray-500">
-                              ${formatter.format(part.parts_price)}
+                              $
+                              {partDetails
+                                ? formatter.format(
+                                    partDetails[part.parts_id].part_price
+                                  )
+                                : ""}
                             </td>
                             {/* Part Quantity */}
                             <td className="text-center">
                               <div className="flex justify-center space-x-2">
-                                <button
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.item_id,
-                                      part.parts_id,
-                                      part.quantity - 1
-                                    )
-                                  }
-                                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
-                                >
-                                  -
-                                </button>
                                 <span className="border border-gray-300 rounded-md px-3 py-1">
                                   {part.quantity}
                                 </span>
-                                <button
-                                  onClick={() =>
-                                    handleQuantityChange(
-                                      item.item_id,
-                                      part.parts_id,
-                                      part.quantity + 1
-                                    )
-                                  }
-                                  className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded"
-                                >
-                                  +
-                                </button>
                               </div>
-                            </td>
-                            <td className="text-center">
-                              <button
-                                onClick={() =>
-                                  handleRemoveFromCart(
-                                    item.item_id,
-                                    part.parts_id
-                                  )
-                                }
-                                className="bg-gray-700 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
-                              >
-                                Remove
-                              </button>
                             </td>
                           </tr>
                         ))}
-                        <tr className="bg-gray-100">
-                          <td
-                            colSpan="3"
-                            className="text-right font-bold text-lg"
-                          >
-                            Total
+                        <tr className="bg-gray-100 mt-3">
+                          <td>
+                            <div className="flex justify-start mt-3 ml-3">
+                              <button
+                                onClick={() =>
+                                  handleRemoveFromCart(item.item_id)
+                                }
+                                className="bg-blue-700 hover:bg-blue-500 text-white font-semibold py-2 px-4 rounded transition-colors duration-300"
+                              >
+                                Remove PC
+                              </button>
+                            </div>
+                          </td>
+
+                          <td className="text-right font-bold text-lg">
+                            <div className="flex justify-start mt-3">Total</div>
                           </td>
                           <td className="text-center font-bold text-lg">
-                            $
-                            {updatedCart.map((eachTotal) => {
-                              if (eachTotal.item_id === item.item_id) {
-                                return formatter.format(eachTotal.price);
-                              }
-                            })}
+                            <div className="flex justify-start mt-3">
+                              $
+                              {cartTotal
+                                ? formatter.format(cartTotal[item.item_id])
+                                : ""}
+                            </div>
                           </td>
                         </tr>
                       </tbody>

@@ -55,28 +55,28 @@ services:
     environment:
       - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
     ports:
-      - "5002:5000"
+      - "5002:5002"
     networks:
       - kong-net
     restart: always
   ####################################################
   # Handling Order CMS
   ####################################################
-  # handling-order-cms:
-  #   build:
-  #     context: ./handling-order-cms
-  #     dockerfile: Dockerfile
-  #   image: handling-order-cms
-  #   container_name: handling-order-cms
-  #   ports:
-  #     - "5100:5100"
-  #   restart: always
-  #   networks:
-  #     - kong-net
-  #   depends_on:
-  #     - cart-ms
-  #     - order-ms
-  #     - notification-ms
+  handling-order-cms:
+    build:
+      context: ./handling-order-cms
+      dockerfile: Dockerfile
+    image: handling-order-cms
+    container_name: handling-order-cms
+    ports:
+      - "5100:5100"
+    restart: always
+    networks:
+      - kong-net
+    depends_on:
+      - cart-ms
+      - order-ms
+      - notification-ms
 
   ####################################################
   # Notification MS
@@ -94,6 +94,23 @@ services:
     env_file:
       - ./notification-ms/.env
     restart: always
+    depends_on:
+      - "rabbit-forward"
+
+  ####################################################
+  # Parts MS
+  ####################################################
+  parts-ms:
+    build:
+      context: ./parts_simple
+      dockerfile: Dockerfile
+    image: parts-ms
+    container_name: parts-ms
+    ports:
+      - "5950:5950"
+    networks:
+      - kong-net
+    restart: always
 
   ####################################################
   # Consumes Activity Log Queue & Post to Firestore DB
@@ -109,6 +126,10 @@ services:
     env_file:
       - .env
     restart: always
+    networks:
+      - kong-net
+    depends_on:
+      - "rabbit-forward"
 
   #################################################
   # Consumes Error Log Queue & Post to Firestore DB
@@ -124,6 +145,10 @@ services:
     env_file:
       - .env
     restart: always
+    networks:
+      - kong-net
+    depends_on:
+      - "rabbit-forward"
 
   ########################################
   # Foward HTTP Request (POST) to RabbitMQ
@@ -136,6 +161,8 @@ services:
     container_name: rabbit-forward
     ports:
       - "3200:3200"
+    networks:
+      - kong-net
     env_file:
       - .env
     restart: always
@@ -151,6 +178,8 @@ services:
     container_name: retrieve-logs
     networks:
       - kong-net
+    ports:
+      - "3900:3900"
     env_file:
       - .env
     restart: always
@@ -166,6 +195,8 @@ services:
     container_name: payment-ms
     networks:
       - kong-net
+    ports:
+      - "3400:3400"
     env_file:
       - ./payment/.env
     restart: always

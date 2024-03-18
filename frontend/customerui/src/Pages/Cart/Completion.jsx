@@ -11,7 +11,15 @@ export function Completion() {
     const postPaymentProcessing = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5100/post-payment-processing/${customerID}`
+          // `http://localhost:5100/post-payment-processing`
+          `http://localhost:5100/post-payment-processing`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ customer_id: customerID }),
+          }
         );
 
         if (!response.ok) throw new Error("Failed to send confirmation email");

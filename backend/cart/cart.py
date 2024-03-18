@@ -206,8 +206,10 @@ def construct_cart_data(cart):
     return cart_data
 
 #Delete a specific item
-@app.route("/cart/<customer_id>/delete/<int:item_id>", methods=['DELETE'])
-def delete_cart_item(customer_id, item_id):
+@app.route("/delete-item", methods=['POST'])
+def delete_cart_item():
+    customer_id = request.json.get('customer_id', None)
+    item_id = request.json.get('item_id', None)
     # Query the cart for the specified customer ID
     cart = Cart.query.filter_by(customer_id=customer_id).first()
     if not cart:
@@ -273,4 +275,4 @@ def get_cart_total_price(customer_id):
 
 if __name__ == '__main__':
     print("This is flask for " + os.path.basename(__file__) + ": manage orders ...")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5002, debug=True)
