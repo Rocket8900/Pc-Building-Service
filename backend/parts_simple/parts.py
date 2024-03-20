@@ -124,6 +124,25 @@ def fetch_parts_by_category():
         print("Error fetching data from PostgreSQL:", e)
         return jsonify({'error': 'Failed to fetch data from database'}), 500
 
+@app.route('/categories', methods=['POST'])
+def fetch_all_categories():
+    try:
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+  
+        cur.execute('SELECT DISTINCT part_category FROM parts_table;')
+        rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        categories = [row[0] for row in rows]  # Extracting categories from the fetched rows
+
+        return jsonify({'categories': categories}), 200
+    except psycopg2.Error as e:
+        print("Error fetching data from PostgreSQL:", e)
+        return jsonify({'error': 'Failed to fetch categories from database'}), 500
+    
 
 @app.route('/part', methods=['POST'])
 def fetch_part_by_id():
@@ -264,8 +283,6 @@ def fetch_part_category_by_part_id():
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
         return jsonify({'error': 'Failed to fetch data from database'}), 500
-
-
 
 @app.route('/part/update', methods=['PUT'])
 def update_part_details():
