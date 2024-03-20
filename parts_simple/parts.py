@@ -8,7 +8,7 @@ app = Flask(__name__)
 CORS(app)
     
 
-# Define your database connection parameters``
+# Define your database connection parameters
 conn_params = {
     'database': 'verceldb',
     'user': 'default',
@@ -30,7 +30,7 @@ def fetch_all_parts():
         rows = cur.fetchall()
 
         # Convert rows to JSON format
-        post_data = [{'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category':row[4]} for row in rows]
+        post_data = [{'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category': row[4]} for row in rows]
 
         cur.close()
         conn.close()
@@ -60,7 +60,7 @@ def fetch_parts_by_name():
         conn.close()
 
         if rows:
-            post_data = [{'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3] , 'part_category':row[4]} for row in rows]
+            post_data = [{'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category': row[4]} for row in rows]
             return jsonify(post_data), 200
         else:
             return jsonify({'error': 'No parts found for this name'}), 404
@@ -88,14 +88,14 @@ def fetch_parts_by_price_range():
         conn.close()
 
         if rows:
-            post_data = [{'partid': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category':row[4]} for row in rows]
+            post_data = [{'partid': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category': row[4]} for row in rows]
             return jsonify(post_data), 200
         else:
             return jsonify({'error': 'No parts found within the price range'}), 404
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
         return jsonify({'error': 'Failed to fetch data from database'}), 500
-    
+
 @app.route('/parts/category', methods=['POST'])
 def fetch_parts_by_category():
     try:
@@ -108,7 +108,8 @@ def fetch_parts_by_category():
         conn = psycopg2.connect(**conn_params)
         cur = conn.cursor()
 
-        cur.execute("SELECT * FROM parts_table WHERE LOWER(part_category) = LOWER(%s)", (category,))
+        # Use ILIKE in PostgreSQL for case-insensitive comparison
+        cur.execute("SELECT * FROM parts_table WHERE LOWER(part_category) = LOWER(%s);", (category,))
         rows = cur.fetchall()
 
         cur.close()
@@ -123,6 +124,25 @@ def fetch_parts_by_category():
         print("Error fetching data from PostgreSQL:", e)
         return jsonify({'error': 'Failed to fetch data from database'}), 500
 
+@app.route('/categories', methods=['POST'])
+def fetch_all_categories():
+    try:
+        conn = psycopg2.connect(**conn_params)
+        cur = conn.cursor()
+  
+        cur.execute('SELECT DISTINCT part_category FROM parts_table;')
+        rows = cur.fetchall()
+
+        cur.close()
+        conn.close()
+
+        categories = [row[0] for row in rows]  # Extracting categories from the fetched rows
+
+        return jsonify({'categories': categories}), 200
+    except psycopg2.Error as e:
+        print("Error fetching data from PostgreSQL:", e)
+        return jsonify({'error': 'Failed to fetch categories from database'}), 500
+    
 
 @app.route('/part', methods=['POST'])
 def fetch_part_by_id():
@@ -144,7 +164,7 @@ def fetch_part_by_id():
         conn.close()
 
         if row:
-            post_data = {'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category':row[4]}
+            post_data = {'part_id': row[0], 'part_name': row[1], 'quantity': row[2], 'part_price': row[3], 'part_category': row[4]}
             return jsonify(post_data), 200
         else:
             return jsonify({'error': 'Part not found'}), 404
@@ -237,7 +257,7 @@ def fetch_part_quantity_by_id():
         return jsonify({'error': 'Failed to fetch data from database'}), 500
 
 @app.route('/part/category', methods=['POST'])
-def fetch_category_by_part_id():
+def fetch_part_category_by_part_id():
     try:
         # Retrieve the part ID from the request JSON payload
         data = request.json
@@ -264,7 +284,6 @@ def fetch_category_by_part_id():
         print("Error fetching data from PostgreSQL:", e)
         return jsonify({'error': 'Failed to fetch data from database'}), 500
 
-
 @app.route('/part/update', methods=['PUT'])
 def update_part_details():
     try:
@@ -274,7 +293,7 @@ def update_part_details():
         new_part_name = data.get('part_name')
         new_quantity = data.get('quantity')
         new_part_price = data.get('part_price')
-        new_part_category= data.get("part_category")
+        new_part_category= data.get('part_category')
         
         if not part_id:
             return jsonify({'error': 'Part ID is missing in the request.'}), 400
@@ -292,7 +311,7 @@ def update_part_details():
         # Update the part details
         update_query = """
             UPDATE parts_table 
-            SET part_name = %s, quantity = %s, part_price = %s, part_category = %s
+            SET part_name = %s, quantity = %s, part_price = %s, part_category= %s
             WHERE part_id = %s;
         """
         cur.execute(update_query, (new_part_name, new_quantity, new_part_price, new_part_category, part_id))
@@ -385,6 +404,6 @@ def add_part():
 
 
 if __name__ == '__main__':
-    app.run(host = '0.0.0.0', port =  5000, debug = True)
+    app.run(host = '0.0.0.0', port = 5950, debug = True)
 
 
