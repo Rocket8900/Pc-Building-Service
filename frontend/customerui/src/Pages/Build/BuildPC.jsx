@@ -11,7 +11,7 @@ export function BuildPC() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:5950/all-parts", {
+        const response = await fetch("http://localhost:5000/all-parts", {
           method: "POST", // Set the method to POST
           headers: {
             "Content-Type": "application/json",
