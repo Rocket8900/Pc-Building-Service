@@ -4,33 +4,74 @@ import { Dropdown } from "../../Components/Dropdown";
 import { useState, useEffect } from "react";
 
 export function BuildPC() {
-  // State to store the data
-  const [partsData, setPartsData] = useState({});
+  const [parts, setParts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  // Object that is updated with backend Data
+  const [partsData, setPartsData] = useState({
+    "Core Components": {
+    },
+    "Storage and Memory": {},
+    "Case": {},
+    "Cooler": {},
+    "Audio": {}
+  });
 
-  // Fetching data from the endpoint
+  // useEffect to fetch parts and categories
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/all-parts", {
-          method: "POST", // Set the method to POST
-          headers: {
-            "Content-Type": "application/json",
-            // Include any other headers your endpoint requires
-          },
-          body: JSON.stringify({}), // Include body if your endpoint requires it
-        });
-        const data = await response.json();
+    async function fetchCategories() {
+      const response = await fetch("http://localhost:5950/categories", {
+        method: "POST",
+      });
+      const resData = await response.json();
+      setCategories(resData);
+    }
 
-        setPartsData(data);
-      } catch (error) {
-        console.error("Error fetching data: ", error);
+    async function fetchParts() {
+      const response = await fetch("http://localhost:5950/all-parts", {
+        method: "POST",
+      });
+      const resData = await response.json();
+      setParts(resData);
+    }
+
+    fetchParts();
+    fetchCategories();
+  }, []);
+
+  // populating partsData
+  useEffect(() => {
+    const updatedPartsData = {partsData}
+    // fields 
+    const coreCoponents = ["CPU", "GPU", "Power Supply", "Motherboard"]
+    const storageAndMemory = ["RAM", "Storage"]
+    const computerCase = ["Case"]
+    const cooler = ["CPU Cooler"]
+    const headset = ["Headset"]
+
+      
+    for (let i = 0; i < categories.length; i++) {
+      if (coreCoponents.includes(categories[i])) {
+        updatedPartsData["partsData"]["Core Components"][categories[i]] = []
       }
-    };
+      else if (storageAndMemory.includes(categories[i])) {
+        updatedPartsData["partsData"]["Storage and Memory"][categories[i]] = []
+      }
+      else if (computerCase.includes(categories[i])) {
+        updatedPartsData["partsData"]["Case"][categories[i]] = []
+      }
+      else if (cooler.includes(categories[i])){
+        updatedPartsData["partsData"]["Cooler"][categories[i]] = []
+      }
+      else if (headset.includes(categories[i])) {
+        updatedPartsData["partsData"]["Audio"][categories[i]] = []
+      }
+    }
 
-    fetchData();
-  }, []); // The empty array ensures this runs once on component mount
+    console.log(updatedPartsData)
 
-  console.log(partsData)
+  }, [parts, categories]);
+
+  
 
   var sections = Object.keys(INTERNAL_DATA);
 

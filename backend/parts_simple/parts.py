@@ -138,7 +138,7 @@ def fetch_all_categories():
 
         categories = [row[0] for row in rows]  # Extracting categories from the fetched rows
 
-        return jsonify({'categories': categories}), 200
+        return jsonify(categories), 200
     except psycopg2.Error as e:
         print("Error fetching data from PostgreSQL:", e)
         return jsonify({'error': 'Failed to fetch categories from database'}), 500
