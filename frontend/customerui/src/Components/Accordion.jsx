@@ -4,7 +4,6 @@ export function Accordion({ name, children }) {
     const [accordionOpen, setAccordionOpen] = useState(false);
     function clickAccordion() {
         setAccordionOpen(!accordionOpen);
-        console.log(accordionOpen)
     }
 
     return (

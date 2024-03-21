@@ -1,5 +1,4 @@
 import { Accordion } from "../../Components/Accordion";
-import { INTERNAL_DATA } from "./BuildPCData";
 import { Dropdown } from "../../Components/Dropdown";
 import { useState, useEffect } from "react";
 
@@ -65,8 +64,6 @@ export function BuildPC() {
       }
     }
 
-    console.log(updatedCompiledData);
-
     // check if category (CPU) in section (main component)
     let allEmpty = true;
     for (let key in updatedCompiledData) {
@@ -94,32 +91,29 @@ export function BuildPC() {
         }
       }
     }
+
+    setCompiledData(updatedCompiledData)
   }, [categories, parts]);
 
-  console.log(compiledData)
-
-  var sections = Object.keys(INTERNAL_DATA);
+  // var sections = Object.keys(INTERNAL_DATA);
+  var sections = Object.keys(compiledData)
 
   return (
     <div className="flex flex-col items-center mx-auto">
       {sections.map((section) => {
-        // Retrieve the categories for the current section
-        const categories = INTERNAL_DATA[section].category;
-
-        return (
-          <Accordion key={section} name={section}>
-            {Object.keys(categories).map((categoryKey) => {
-              const category = categories[categoryKey];
-              return (
-                <Dropdown
-                  key={categoryKey}
-                  component={categoryKey}
-                  itemsAndCosts={Object.entries(category.variants)}
+          return(
+            <Accordion key={section} name={section}>
+            {Object.keys(compiledData[section]).map((part_category) => {
+              return(
+                <Dropdown 
+                  key={part_category}
+                  component={part_category}
+                  partInfo={compiledData[section]}
                 />
-              );
+              )
             })}
-          </Accordion>
-        );
+            </Accordion>
+          )
       })}
     </div>
   );
