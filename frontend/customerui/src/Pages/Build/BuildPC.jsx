@@ -23,12 +23,21 @@ export function BuildPC() {
     "Storage": true,
     "Case": true,
     "CPU Cooler": true,
-    "Headset": false
+    "Headset": true
   });
 
+  // State to track the pcName value
+  const [pcName, setPcName] = useState('');
 
-  const HideEnterPcName = Object.values(selectedStatusDict).includes(false);
-  console.log(HideEnterPcName)
+  // Function to update the input value state
+  function handlePcNameChange(event) {
+    setPcName(event.target.value);
+  }
+
+  // Determine visibility of the addToCartSection based on pcName having text
+  function shouldShowAddToCart() {
+    return pcName.trim() !== '';
+  }
 
   // useEffect to fetch parts and categories
   useEffect(() => {
@@ -112,6 +121,7 @@ export function BuildPC() {
   }, [categories, parts]);
 
   var sections = Object.keys(compiledData);
+  const HideEnterPcName = Object.values(selectedStatusDict).includes(false);
 
   return (
     <>
@@ -139,9 +149,9 @@ export function BuildPC() {
         <div id="endingSection" className="flex justify-between w-4/5">
           <div id="enterPcName" className={`mt-2 ${HideEnterPcName ? 'hidden' : '' }`}>
             <label htmlFor="pcName" className="mr-2">PC Name</label>
-            <input id="pcName" placeholder="Your PC's name" className="border border-blue p-2 rounded-md"></input>
+            <input id="pcName" placeholder="Your PC's name" className="border border-blue p-2 rounded-md" value={pcName} onChange={handlePcNameChange}></input>
           </div>
-          <div className="mt-2">
+          <div id="addToCartSection" className={`mt-2 ${shouldShowAddToCart() ? '' : 'hidden'}`}>
             <label className="mr-2 text-lg"><b>$100</b></label>
             <button id="addToCart" className="bg-violet-700 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all"> Add to Cart</button>
           </div>
