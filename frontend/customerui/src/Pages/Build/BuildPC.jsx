@@ -95,26 +95,32 @@ export function BuildPC() {
     setCompiledData(updatedCompiledData)
   }, [categories, parts]);
 
-  // var sections = Object.keys(INTERNAL_DATA);
   var sections = Object.keys(compiledData)
 
   return (
-    <div className="flex flex-col items-center mx-auto">
-      {sections.map((section) => {
-          return(
-            <Accordion key={section} name={section}>
-            {Object.keys(compiledData[section]).map((part_category) => {
-              return(
-                <Dropdown 
-                  key={part_category}
-                  component={part_category}
-                  partInfo={compiledData[section]}
-                />
-              )
-            })}
-            </Accordion>
-          )
-      })}
-    </div>
+    <>
+      <div className="flex flex-col items-center mx-auto">
+        {sections.map((section) => {
+            return(
+              <Accordion key={section} name={section}>
+              {Object.keys(compiledData[section]).map((part_category) => {
+                return(
+                  <Dropdown 
+                    key={part_category}
+                    component={part_category}
+                    partInfo={compiledData[section]}
+                  />
+                )
+              })}
+              </Accordion>
+            )
+        })}
+      </div>
+
+      <div>
+        <span>Cost</span>
+        <button className=" bg-blue-600 p-2 rounded-lg text-white mt-3">Add to Cart</button>
+      </div>
+    </>
   );
 }
