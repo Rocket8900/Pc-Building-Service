@@ -9,10 +9,26 @@ export function BuildPC() {
   const [compiledData, setCompiledData] = useState({
     "Core Components": {},
     "Storage and Memory": {},
-    Case: {},
-    Cooler: {},
-    Audio: {},
+    "Case": {},
+    "Cooler": {},
+    "Audio": {},
   });
+  // useState to pass down to Dropdown component, to check if employee has selected all parts
+  const [selectedStatusDict, setSelectedStatusDict] = useState({
+    "Power Supply": true,
+    "CPU": true,
+    "GPU": true,
+    "Motherboard": true,
+    "RAM": true,
+    "Storage": true,
+    "Case": true,
+    "CPU Cooler": true,
+    "Headset": false
+  });
+
+
+  const HideEnterPcName = Object.values(selectedStatusDict).includes(false);
+  console.log(HideEnterPcName)
 
   // useEffect to fetch parts and categories
   useEffect(() => {
@@ -109,6 +125,8 @@ export function BuildPC() {
                     key={part_category}
                     component={part_category}
                     partInfo={compiledData[section]}
+                    selectedStatusDict={selectedStatusDict}
+                    setSelectedStatusDict={setSelectedStatusDict}
                   />
                 );
               })}
@@ -119,7 +137,7 @@ export function BuildPC() {
 
       <div className="flex justify-center">
         <div id="endingSection" className="flex justify-between w-4/5">
-          <div className="mt-2">
+          <div id="enterPcName" className={`mt-2 ${HideEnterPcName ? 'hidden' : '' }`}>
             <label htmlFor="pcName" className="mr-2">PC Name</label>
             <input id="pcName" placeholder="Your PC's name" className="border border-blue p-2 rounded-md"></input>
           </div>
