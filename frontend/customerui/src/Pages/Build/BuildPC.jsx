@@ -9,9 +9,9 @@ export function BuildPC() {
   const [compiledData, setCompiledData] = useState({
     "Core Components": {},
     "Storage and Memory": {},
-    "Case": {},
-    "Cooler": {},
-    "Audio": {},
+    Case: {},
+    Cooler: {},
+    Audio: {},
   });
 
   // useEffect to fetch parts and categories
@@ -92,34 +92,36 @@ export function BuildPC() {
       }
     }
 
-    setCompiledData(updatedCompiledData)
+    setCompiledData(updatedCompiledData);
   }, [categories, parts]);
 
-  var sections = Object.keys(compiledData)
+  var sections = Object.keys(compiledData);
 
   return (
     <>
       <div className="flex flex-col items-center mx-auto">
         {sections.map((section) => {
-            return(
-              <Accordion key={section} name={section}>
+          return (
+            <Accordion key={section} name={section}>
               {Object.keys(compiledData[section]).map((part_category) => {
-                return(
-                  <Dropdown 
+                return (
+                  <Dropdown
                     key={part_category}
                     component={part_category}
                     partInfo={compiledData[section]}
                   />
-                )
+                );
               })}
-              </Accordion>
-            )
+            </Accordion>
+          );
         })}
       </div>
 
-      <div>
-        <span>Cost</span>
-        <button className=" bg-blue-600 p-2 rounded-lg text-white mt-3">Add to Cart</button>
+      <div className="flex justify-center">
+        <div id="endingSection" className="flex justify-between w-4/5 border border-purple-800">
+          <div className="border border-zinc-950">Name</div>
+          <div>Cart</div>
+        </div>
       </div>
     </>
   );
