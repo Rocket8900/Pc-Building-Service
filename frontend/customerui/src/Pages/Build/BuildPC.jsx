@@ -9,9 +9,9 @@ export function BuildPC() {
   const [compiledData, setCompiledData] = useState({
     "Core Components": {},
     "Storage and Memory": {},
-    Case: {},
-    Cooler: {},
-    Audio: {},
+    "Case": {},
+    "Cooler": {},
+    "Audio": {},
   });
 
   // useEffect to fetch parts and categories
