@@ -119,11 +119,14 @@ export function BuildPC() {
 
       <div className="flex justify-center">
         <div id="endingSection" className="flex justify-between w-4/5">
-          <div className="border border-yellow-500 text-left">
-            <label htmlFor="pcName" className="border bg-red-600">Name Your PC</label>
-            <input id="pcName" placeholder="Your PC's name" className="border border-blue block"></input>
+          <div className="mt-2">
+            <label htmlFor="pcName" className="mr-2">PC Name</label>
+            <input id="pcName" placeholder="Your PC's name" className="border border-blue p-2 rounded-md"></input>
           </div>
-          <div className="border border-red-600">Cart</div>
+          <div className="mt-2">
+            <label className="mr-2 text-lg"><b>$100</b></label>
+            <button id="addToCart" className="bg-violet-700 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all"> Add to Cart</button>
+          </div>
         </div>
       </div>
 
