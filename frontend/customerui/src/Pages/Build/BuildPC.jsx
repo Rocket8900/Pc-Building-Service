@@ -28,6 +28,10 @@ export function BuildPC() {
 
   // State to track the pcName value
   const [pcName, setPcName] = useState('');
+  
+  // State of buildingPC 
+  const [startBuild, setStartBuild] = useState(false)
+
 
   // Function to update the input value state
   function handlePcNameChange(event) {
@@ -37,6 +41,11 @@ export function BuildPC() {
   // Determine visibility of the addToCartSection based on pcName having text
   function shouldShowAddToCart() {
     return pcName.trim() !== '';
+  }
+
+  // function to startBuilding
+  function clickStartBuild() {
+    setStartBuild(true)
   }
 
   // useEffect to fetch parts and categories
@@ -126,7 +135,14 @@ export function BuildPC() {
 
   return (
     <>
-      <div className="flex flex-col items-center mx-auto">
+      <div id="createPC" className={`flex flex-col items-center mx-auto bg-blue-500 p-20 my-20 w-4/5 rounded-lg ${ startBuild ? 'hidden' : ''}`}>
+        <section>
+          <p className=" text-5xl font-mono">Build your Dream PC!</p>
+          <button onClick={clickStartBuild} id="startBuild" className=" bg-violet-800 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all mt-10">Begin Building</button>
+        </section>
+      </div>
+
+      <div className={`flex flex-col items-center mx-auto ${ startBuild ? '' : 'hidden' } `}>
         {sections.map((section) => {
           return (
             <Accordion key={section} name={section}>
