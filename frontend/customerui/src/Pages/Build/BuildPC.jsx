@@ -12,18 +12,18 @@ export function BuildPC() {
     "Case": {},
     "Cooler": {},
     "Audio": {},
-  });
+  }); 
   // useState to pass down to Dropdown component, to check if employee has selected all parts
   const [selectedStatusDict, setSelectedStatusDict] = useState({
-    "Power Supply": true,
-    "CPU": true,
-    "GPU": true,
-    "Motherboard": true,
-    "RAM": true,
-    "Storage": true,
-    "Case": true,
-    "CPU Cooler": true,
-    "Headset": true
+    "Power Supply": false,
+    "CPU": false,
+    "GPU": false,
+    "Motherboard": false,
+    "RAM": false,
+    "Storage": false,
+    "Case": false,
+    "CPU Cooler": false,
+    "Headset": false
   });
 
   // State to track the pcName value
@@ -122,6 +122,7 @@ export function BuildPC() {
 
   var sections = Object.keys(compiledData);
   const HideEnterPcName = Object.values(selectedStatusDict).includes(false);
+  console.log(selectedStatusDict)
 
   return (
     <>

@@ -5,14 +5,30 @@ export function Dropdown({ component, partInfo, selectedStatusDict, setSelectedS
 
   function handleSelectChange(event) {
     const value = event.target.value
+    const selectedArray = value.split(",")
+    const component = selectedArray[0]
+    const partId = selectedArray[1]
 
-    if(value) {
-      const id = value.split(",")[0]
-      const category = value.split(",")[1]
-      setSelectedStatusDict([...selectedStatusDict, category])
+    if(partId) {
+      console.log(component, "partId:", partId)
+      // update selectedStatusDict, where selectedStatusDict[component] = true
+      setSelectedStatusDict(prevState => ({
+        ...prevState,
+        [component]: true
+      }));
     }
-    // setselectedPartId(value)
+    else {
+      console.log(component, "no partId")
+      // update selectedStatusDict, where selectedStatusDict[component] = false
+      setSelectedStatusDict(prevState => ({
+        ...prevState,
+        [component]: false
+      }));
+    }
+
   }
+
+  
 
   return (
     <div id="dropdown" className="bg-white text-left p-2 mt-3">
@@ -22,10 +38,10 @@ export function Dropdown({ component, partInfo, selectedStatusDict, setSelectedS
         className="border border-black md:w-full p-1 mt-1 rounded-lg"
         onChange={handleSelectChange}
       >
-        <option value="">Please Select a {component}</option>
+        <option value={[component, ""]}>Please Select a {component}</option>
         {partInfo[component].map((item) => {  
           return (
-            <option key={item["part_id"]} value={ [item["part_id"], item["part_category"]] }>
+            <option key={item["part_id"]} value={[component, item["part_id"]]}>
               {item["part_name"]} (${item["part_price"]})
             </option>
           );
