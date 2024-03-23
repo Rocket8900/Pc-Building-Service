@@ -1,8 +1,10 @@
 from flask import Flask, session, request, jsonify
+from flask_cors import CORS
 from uuid import uuid4
 import requests
 
 app = Flask(__name__)
+CORS(app) 
 app.secret_key = 'your_secret_key_here'
 
 
