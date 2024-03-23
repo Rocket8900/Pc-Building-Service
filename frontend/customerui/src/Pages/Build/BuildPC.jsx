@@ -44,8 +44,17 @@ export function BuildPC() {
   }
 
   // function to startBuilding
-  function clickStartBuild() {
+  async function clickStartBuild() {
     setStartBuild(true)
+    const response = await fetch("http://localhost:5005/createPc", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: "112"
+      })
+    })
   }
 
   // useEffect to fetch parts and categories

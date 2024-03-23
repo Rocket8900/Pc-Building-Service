@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName }) {
 
-  function handleSelectChange(event) {
+  async function handleSelectChange(event) {
     const value = event.target.value
     const selectedArray = value.split(",")
     const component = selectedArray[0]
@@ -23,6 +23,20 @@ export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName
       }))
       setPcName('');
     }
+
+    console.log(partId)
+
+    // send selected part to buildingPC complex
+    const response = await fetch("http://localhost:5005/addPart", {
+        method: "POST",
+        body: JSON.stringify({
+          userId: "112",
+          part_id: partId
+      })
+    })
+
+    // HI CLARRISA ITS ME GABR 
+
 
   }
 
