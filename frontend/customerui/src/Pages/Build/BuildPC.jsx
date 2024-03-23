@@ -122,7 +122,7 @@ export function BuildPC() {
 
   var sections = Object.keys(compiledData);
   const HideEnterPcName = Object.values(selectedStatusDict).includes(false);
-  console.log(selectedStatusDict)
+
 
   return (
     <>
@@ -138,6 +138,8 @@ export function BuildPC() {
                     partInfo={compiledData[section]}
                     selectedStatusDict={selectedStatusDict}
                     setSelectedStatusDict={setSelectedStatusDict}
+                    setPcName={setPcName}
+                    pcName={pcName}
                   />
                 );
               })}

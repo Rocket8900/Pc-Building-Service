@@ -1,7 +1,6 @@
 import { useState } from "react";
 
-export function Dropdown({ component, partInfo, selectedStatusDict, setSelectedStatusDict }) {
-  const [selectedPartId, setselectedPartId] = useState()
+export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName }) {
 
   function handleSelectChange(event) {
     const value = event.target.value
@@ -10,7 +9,6 @@ export function Dropdown({ component, partInfo, selectedStatusDict, setSelectedS
     const partId = selectedArray[1]
 
     if(partId) {
-      console.log(component, "partId:", partId)
       // update selectedStatusDict, where selectedStatusDict[component] = true
       setSelectedStatusDict(prevState => ({
         ...prevState,
@@ -18,17 +16,15 @@ export function Dropdown({ component, partInfo, selectedStatusDict, setSelectedS
       }));
     }
     else {
-      console.log(component, "no partId")
       // update selectedStatusDict, where selectedStatusDict[component] = false
       setSelectedStatusDict(prevState => ({
         ...prevState,
         [component]: false
-      }));
+      }))
+      setPcName('');
     }
 
   }
-
-  
 
   return (
     <div id="dropdown" className="bg-white text-left p-2 mt-3">
