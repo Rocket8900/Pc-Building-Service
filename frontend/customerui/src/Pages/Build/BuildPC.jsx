@@ -63,15 +63,22 @@ export function BuildPC() {
     if (response.ok) {
       const cartData = await response.json();
       cartData["cart_item"]["pc_name"] = pcName;
+      
+      // insert quantity 
+      cartData["cart_item"]["parts"].map(item => {
+        item["quantity"] = 1
+      });
+
+      // need to put [] at JSON.srtingify
       console.log(cartData);
-  
+    
       const cartResponse = await fetch("http://localhost:5002/cart", {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(cartData), 
-        credentials: 'include',
+        body: JSON.stringify([cartData]), 
+        // credentials: 'include',
       });
   
       if (!cartResponse.ok) {

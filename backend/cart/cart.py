@@ -10,13 +10,22 @@ from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/cart": {"origins": "http://localhost:5173"}})
+# CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
 #'mysql+mysqlconnector://root:root@localhost:8889/cart'
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:Cartdbpass@cartdb.cpw8i20y0wi5.ap-southeast-1.rds.amazonaws.com/cart'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
+
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
 
 class Cart(db.Model):
     __tablename__ = 'cart'
