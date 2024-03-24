@@ -3,10 +3,11 @@ from flask_cors import CORS
 from uuid import uuid4
 import requests
 
-app = Flask(__name__)
-CORS(app) 
-app.secret_key = 'your_secret_key_here'
 
+app = Flask(__name__)
+CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
+app.secret_key = 'your_secret_key_here'
+app.config['SESSION_COOKIE_SECURE'] = False
 
 
 PARTS_SERVICE_URL = 'http://localhost:5950/part'
@@ -38,6 +39,8 @@ def create_pc():
         return jsonify({"error": "UserId is required"}), 400
     session[userId] = {"pc_name": "", "parts": [], "price": 0}
     session.modified = True
+    print(userId)
+    print(session[userId])
     return jsonify(session[userId]), 200
 
 @app.route('/editPcName', methods=['PUT'])
@@ -58,7 +61,10 @@ def add_part():
     data = request.json
     part_id = data.get('part_id')
     userId = data.get('userId')
+    print(userId)
+    print(session)
     part_details = fetch_part_details(part_id)
+    print(session)
     if userId in session:
         existing_parts = session[userId]['parts']
         print(f"Before adding part: {session[userId]['parts']}")

@@ -51,10 +51,11 @@ export function BuildPC() {
       headers: {
         'Content-Type': 'application/json'
       },
+      credentials: 'include', 
       body: JSON.stringify({
         userId: "112"
       })
-    })
+    });
   }
 
   // useEffect to fetch parts and categories

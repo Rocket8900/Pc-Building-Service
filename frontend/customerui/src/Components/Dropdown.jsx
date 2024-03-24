@@ -28,14 +28,16 @@ export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName
 
     // send selected part to buildingPC complex
     const response = await fetch("http://localhost:5005/addPart", {
-        method: "POST",
-        body: JSON.stringify({
-          userId: "112",
-          part_id: partId
-      })
-    })
-
-    // HI CLARRISA ITS ME GABR 
+      method: "POST",
+      credentials: 'include', 
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        userId: "112",
+        part_id: partId
+      }),
+    });
 
 
   }
