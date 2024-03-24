@@ -62,6 +62,7 @@ export function BuildPC() {
   
     if (response.ok) {
       const cartData = await response.json();
+      cartData["cart_item"]["pc_name"] = pcName;
       console.log(cartData);
   
       const cartResponse = await fetch("http://localhost:5002/cart", {
@@ -87,6 +88,7 @@ export function BuildPC() {
   // Function to update the input value state
   function handlePcNameChange(event) {
     setPcName(event.target.value);
+
   }
 
   // Determine visibility of the addToCartSection based on pcName having text

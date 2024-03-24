@@ -24,9 +24,6 @@ export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName
       setPcName('');
     }
 
-    
-
-
     const response = await fetch("http://localhost:5005/addPart", {
       method: "POST",
       credentials: 'include', 
