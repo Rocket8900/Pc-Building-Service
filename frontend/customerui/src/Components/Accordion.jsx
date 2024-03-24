@@ -7,7 +7,7 @@ export function Accordion({ name, children }) {
     }
 
     return (
-        <div id="accordion" className="border border-blue-800 p-4 m-1 rounded-lg bg-blue-800 w-4/5">
+        <div id="accordion" className="border border-blue-800 p-4 m-1 rounded-lg bg-blue-800 w-5/5" >
             <div id="button" onClick={clickAccordion} className="flex justify-between">
                 <span className="text-neutral-300">{name}</span>
                 <span className="text-neutral-300">

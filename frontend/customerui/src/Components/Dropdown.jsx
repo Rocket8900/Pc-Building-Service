@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName }) {
+export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName, updateTotalPrice}) {
 
   async function handleSelectChange(event) {
     const value = event.target.value
@@ -24,9 +24,9 @@ export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName
       setPcName('');
     }
 
-    console.log(partId)
+    
 
-    // send selected part to buildingPC complex
+
     const response = await fetch("http://localhost:5005/addPart", {
       method: "POST",
       credentials: 'include', 
@@ -38,6 +38,7 @@ export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName
         part_id: partId
       }),
     });
+    updateTotalPrice();
 
 
   }

@@ -1,10 +1,12 @@
 import { Accordion } from "../../Components/Accordion";
 import { Dropdown } from "../../Components/Dropdown";
+import { PriceShow } from "../../Components/PriceShow";
 import { useState, useEffect } from "react";
 
 export function BuildPC() {
   const [parts, setParts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [totalPrice, setTotalPrice] = useState(0);
   // Object that is updated with backend Data
   const [compiledData, setCompiledData] = useState({
     "Core Components": {},
@@ -26,11 +28,60 @@ export function BuildPC() {
     "Headset": false
   });
 
+  const updateTotalPrice = async () => {
+    const response = await fetch("http://localhost:5005/getEntireCartWithPrice", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        userId: "112",
+      }),
+    });
+    const data = await response.json();
+    setTotalPrice(data.cart_item.price)
+  };
+
   // State to track the pcName value
   const [pcName, setPcName] = useState('');
   
   // State of buildingPC 
   const [startBuild, setStartBuild] = useState(false)
+
+  const handleAddToCart = async () => {
+    console.log("button pressed");
+    const response = await fetch("http://localhost:5005/getEntireCartWithoutPrice", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({ userId: "112" }),
+    });
+  
+    if (response.ok) {
+      const cartData = await response.json();
+      console.log(cartData);
+  
+      const cartResponse = await fetch("http://localhost:5002/cart", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(cartData), 
+        credentials: 'include',
+      });
+  
+      if (!cartResponse.ok) {
+        console.error("Failed to update the cart in the cart service.");
+      }
+    } else {
+
+      console.error("Failed to get the cart without price.");
+    }
+  };
+  
 
 
   // Function to update the input value state
@@ -152,37 +203,42 @@ export function BuildPC() {
         </section>
       </div>
 
-      <div className={`flex flex-col items-center mx-auto ${ startBuild ? '' : 'hidden' } `}>
-        {sections.map((section) => {
-          return (
-            <Accordion key={section} name={section}>
-              {Object.keys(compiledData[section]).map((part_category) => {
-                return (
-                  <Dropdown
-                    key={part_category}
-                    component={part_category}
-                    partInfo={compiledData[section]}
-                    selectedStatusDict={selectedStatusDict}
-                    setSelectedStatusDict={setSelectedStatusDict}
-                    setPcName={setPcName}
-                    pcName={pcName}
-                  />
-                );
-              })}
-            </Accordion>
-          );
-        })}
-      </div>
+    <div className={`flex mx-auto ${startBuild ? '' : 'hidden'}`} style={{ width: '100%' }}>
+    <div style={{ width: '80%' }}>
+      {sections.map((section) => {
+        return (
+          <Accordion key={section} name={section}>
+            {Object.keys(compiledData[section]).map((part_category) => {
+              return (
+                <Dropdown
+                  key={part_category}
+                  component={part_category}
+                  partInfo={compiledData[section]}
+                  updateTotalPrice={updateTotalPrice}
+                  selectedStatusDict={selectedStatusDict}
+                  setSelectedStatusDict={setSelectedStatusDict}
+                  setPcName={setPcName}
+                  pcName={pcName}
+                />
+              );
+            })}
+          </Accordion>
+        );
+      })}
+    </div>
+    <div style={{ width: '20%' }}>
+    <PriceShow totalPrice={totalPrice} />
+    </div>
+  </div>
 
-      <div className="flex justify-center">
-        <div id="endingSection" className="flex justify-between w-4/5">
-          <div id="enterPcName" className={`mt-2 ${HideEnterPcName ? 'hidden' : '' }`}>
+      <div className="flex justify-center w-full">
+        <div id="endingSection" className="flex justify-between items-center w-5/5">
+          <div id="enterPcName" className={`m-2 mt-2 ${HideEnterPcName ? 'hidden' : '' }`}>
             <label htmlFor="pcName" className="mr-2">PC Name</label>
             <input id="pcName" placeholder="Your PC's name" className="border border-blue p-2 rounded-md" value={pcName} onChange={handlePcNameChange}></input>
           </div>
-          <div id="addToCartSection" className={`mt-2 ${shouldShowAddToCart() ? '' : 'hidden'}`}>
-            <label className="mr-2 text-lg"><b>$100</b></label>
-            <button id="addToCart" className="bg-violet-700 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all"> Add to Cart</button>
+          <div id="addToCartSection" className={`m-2 mt-2 ${shouldShowAddToCart() ? '' : 'hidden'}`}>
+          <button id="addToCart" onClick={handleAddToCart} className="bg-violet-700 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all">Add to Cart</button>
           </div>
         </div>
       </div>
