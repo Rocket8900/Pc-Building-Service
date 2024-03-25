@@ -1,10 +1,11 @@
 import React from "react";
+import axios from "axios"; // Import Axios for making HTTP requests
 
 const clientId =
   "103401913594-aq4cvr1j7uipabj86vjc4nnv4p418sh6.apps.googleusercontent.com";
 
 export function Login() {
-  const handleLogin = () => {
+  const handleLogin = async () => {
     const redirectUri = "http://localhost:5001/login/google";
     const scope = encodeURIComponent("profile email");
     const authUri = `https://accounts.google.com/o/oauth2/auth`;
@@ -13,7 +14,31 @@ export function Login() {
     const prompt = "consent";
 
     const url = `${authUri}?response_type=${responseType}&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&access_type=${accessType}&prompt=${prompt}`;
-    window.location.href = url;
+
+    // Open Google authentication page in a new window
+    const authWindow = window.open(url, "_blank");
+
+    // Listen for messages from the authentication window
+    window.addEventListener("message", async (event) => {
+      // Check if the message is from the authentication window and contains the code
+      if (
+        event.source === authWindow &&
+        event.data.type === "authorization_response"
+      ) {
+        const { code } = event.data;
+        // Exchange the code for an access token and other user info on the server
+        try {
+          const response = await axios.post("/api/auth/google", { code });
+          // Handle the response from the server
+          console.log(response.data);
+        } catch (error) {
+          // Handle error
+          console.error("Error:", error);
+        }
+        // Close the authentication window after processing the response
+        authWindow.close();
+      }
+    });
   };
 
   return (
