@@ -2,6 +2,7 @@ import { Accordion } from "../../Components/Accordion";
 import { Dropdown } from "../../Components/Dropdown";
 import { PriceShow } from "../../Components/PriceShow";
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function BuildPC() {
   const [parts, setParts] = useState([]);
@@ -71,11 +72,11 @@ export function BuildPC() {
       cartData["cart_item"]["pc_name"] = pcName;
 
       // insert quantity
-      cartData["cart_item"]["parts"].map((item) => {
+      cartData["cart_item"]["parts"].forEach((item) => {
+        // changed map to forEach because we are not returning anything
         item["quantity"] = 1;
       });
 
-      // need to put [] at JSON.srtingify
       console.log(cartData);
 
       const cartResponse = await fetch("http://localhost:5002/cart", {
@@ -87,10 +88,12 @@ export function BuildPC() {
           customer_id: cartData.customer_id,
           cart_data: cartData,
         }),
-        // credentials: 'include',
       });
 
-      if (!cartResponse.ok) {
+      if (cartResponse.ok) {
+        // Redirect the user after a successful update
+        window.location.href = "/cart"; // Replace with your desired path
+      } else {
         console.error("Failed to update the cart in the cart service.");
       }
     } else {
