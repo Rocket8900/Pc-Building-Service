@@ -9,7 +9,7 @@ import datetime
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/login/*": {"origins": "http://localhost:3000"}})
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
 
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key') 
 client_id = "103401913594-aq4cvr1j7uipabj86vjc4nnv4p418sh6.apps.googleusercontent.com"
@@ -21,8 +21,8 @@ def generate_jwt(user_id,user_role):
     payload = {
         'user_id': user_id,
         'role': user_role,
-        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=3),
-        'iat': datetime.datetime.utcnow()
+        'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=3),
+        'iat': datetime.datetime.now(datetime.UTC)
     }
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
     return token
@@ -47,6 +47,32 @@ def check_or_create_user(user_data):
         return {'message': 'Error with user data from Google.'}
     else:
         return {'message': 'Error creating user account.'}
+
+
+@app.route('/get_jwt', methods=['POST'])
+def get_jwt():
+    data = request.json['tokenResponse']
+
+    credential = data.get('credential')
+    google_client_id = data.get('clientId')
+
+    token_info_response = requests.get(
+        f'https://oauth2.googleapis.com/tokeninfo?id_token={credential}'
+    )
+
+    token_info = token_info_response.json()
+
+    if token_info.get('aud') != google_client_id:
+        return jsonify({'error': 'Invalid token'}), 401
+
+
+    user_info = {
+        'user_id': token_info.get('sub'),  
+        'name': token_info.get('name'),  
+    }
+    jwt_token = generate_jwt(user_info, "customer")
+
+    return (jwt_token), 200
 
 
 @app.route('/login/google')
