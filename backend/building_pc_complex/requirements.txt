@@ -1,0 +1,5 @@
+Flask==2.1.0
+flask_cors
+requests
+jinja2==3.0.3
+werkzeug==2.0.3

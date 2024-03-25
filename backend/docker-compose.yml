@@ -79,6 +79,21 @@ services:
       - notification-ms
 
   ####################################################
+  # Building PC CMS
+  ####################################################
+  bulding-pc-cms:
+    build:
+      context: ./building_pc_complex
+      dockerfile: Dockerfile
+    image: building-pc-cms
+    container_name: building-pc-cms
+    ports:
+      - "5005:5005"
+    restart: always
+    networks:
+      - kong-net
+
+  ####################################################
   # Notification MS
   ####################################################
   notification-ms:

@@ -10,7 +10,7 @@ app.secret_key = 'your_secret_key_here'
 app.config['SESSION_COOKIE_SECURE'] = False
 
 
-PARTS_SERVICE_URL = 'http://localhost:5950/part'
+PARTS_SERVICE_URL = 'http://host.docker.internal:5950/part'
 
 def fetch_part_details(part_id):
     try:
@@ -58,9 +58,11 @@ def edit_pc_name():
     
 @app.route('/addPart', methods=['POST'])
 def add_part():
+    # Retrieve data from POST request 
     data = request.json
     part_id = data.get('part_id')
     userId = data.get('userId')
+
     print(userId)
     print(session)
     part_details = fetch_part_details(part_id)

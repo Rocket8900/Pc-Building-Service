@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 export function Orders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const customerID = "Salah";
+  const customerID = 112;
 
   // Retrieve Orders on Mount
   useEffect(() => {

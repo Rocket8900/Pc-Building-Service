@@ -34,7 +34,7 @@ def postPaymentProcessing():
         cart_data["data"]["date"] = formatted_date
         
         # Send Email with Cart Data ( # 12 )
-        notification_result = sendConfirmationEmail(cart_data)
+        sendConfirmationEmail(cart_data)
 
         # Save cart data to order db with date ( # 1 )
         sendCartDataToOrderDB(cart_data)
@@ -86,7 +86,7 @@ def retrieveCustomerCart(customer_id):
             result_from_parts_ms = invoke_http(parts_url, method='POST', json={"part_id": partid})
             parts_name = result_from_parts_ms['part_name']
             parts_price = result_from_parts_ms['part_price']
-            parts_quantity = result_from_parts_ms['quantity']
+            parts_quantity = part['quantity']
             part['parts_name'] = parts_name
             part['parts_price'] = float(parts_price)
             part["quantity"] = int(parts_quantity)

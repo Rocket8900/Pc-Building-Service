@@ -1,4 +1,6 @@
-Flask==3.0.0
-pymysql
-Flask-Cors
+Flask>=1.0,<=1.1.2
+flask_cors
 requests
+itsdangerous==2.0.1
+jinja2==3.0.3
+werkzeug==2.0.2

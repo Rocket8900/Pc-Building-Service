@@ -10,10 +10,11 @@ from flask_cors import CORS
 from datetime import datetime
 
 app = Flask(__name__)
-CORS(app, resources={r"/cart": {"origins": "http://localhost:5173"}})
+# CORS(app, resources={r"/cart": {"origins": "http://localhost:5173"}})
+CORS(app)
 # CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
 #'mysql+mysqlconnector://root:root@localhost:8889/cart'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:Cartdbpass@cartdb.cpw8i20y0wi5.ap-southeast-1.rds.amazonaws.com/cart'
+app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -135,12 +136,11 @@ def get_cart_item():
 #Create cart item
 @app.route("/cart", methods=['POST'])
 def create_cart():
+    # Retrieving customer_id from POST request
     customer_id = request.json.get('customer_id', None)
-    existing_cart = Cart.query.filter_by(customer_id=customer_id).first()
 
+    existing_cart = Cart.query.filter_by(customer_id=customer_id).first()
     if existing_cart:
-        
-        
         try:
             # Delete associated cart items
             Cart_Item.query.filter_by(cart_id=existing_cart.cart_id).delete()
@@ -157,18 +157,22 @@ def create_cart():
                 }
             ), 500
 
-    
     # If the user does not exist, create a new entry
     cart = Cart(customer_id=customer_id)
-    cart_items = request.json.get('cart_item')
-    for item in cart_items:
-        cart_item = Cart_Item(pc_name=item['pc_name'], cart_id=cart.cart_id)  # Set cart_id here
-        parts = item.get('parts', [])
-        for part in parts:
-            cart_item.parts_item.append(Parts_Item(
-                parts_id=part['parts_id'], quantity=part['quantity']
-            ))
-        cart.cart_item.append(cart_item)
+    # Retrieving cart_item from POST request
+    cart_data = request.json.get('cart_data')
+    cart_item_data = cart_data['cart_item']
+
+    # Directly access cart_item properties
+    cart_item = Cart_Item(pc_name=cart_item_data['pc_name'], cart_id=cart.cart_id) # Set cart_id here
+    parts = cart_item_data.get('parts', [])
+    for part in parts:
+        cart_item.parts_item.append(Parts_Item(
+            parts_id=part['part_id'], quantity=part['quantity']
+        ))
+    cart.cart_item.append(cart_item)
+
+    
     try:
         db.session.add(cart)
         db.session.commit()

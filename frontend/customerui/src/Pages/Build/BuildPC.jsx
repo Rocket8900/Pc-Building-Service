@@ -11,110 +11,115 @@ export function BuildPC() {
   const [compiledData, setCompiledData] = useState({
     "Core Components": {},
     "Storage and Memory": {},
-    "Case": {},
-    "Cooler": {},
-    "Audio": {},
-  }); 
+    Case: {},
+    Cooler: {},
+    Audio: {},
+  });
   // useState to pass down to Dropdown component, to check if employee has selected all parts
   const [selectedStatusDict, setSelectedStatusDict] = useState({
     "Power Supply": false,
-    "CPU": false,
-    "GPU": false,
-    "Motherboard": false,
-    "RAM": false,
-    "Storage": false,
-    "Case": false,
+    CPU: false,
+    GPU: false,
+    Motherboard: false,
+    RAM: false,
+    Storage: false,
+    Case: false,
     "CPU Cooler": false,
-    "Headset": false
+    Headset: false,
   });
 
   const updateTotalPrice = async () => {
-    const response = await fetch("http://localhost:5005/getEntireCartWithPrice", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({
-        userId: "112",
-      }),
-    });
+    const response = await fetch(
+      "http://localhost:5005/getEntireCartWithPrice",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          userId: "112",
+        }),
+      }
+    );
     const data = await response.json();
-    setTotalPrice(data.cart_item.price)
+    setTotalPrice(data.cart_item.price);
   };
 
   // State to track the pcName value
-  const [pcName, setPcName] = useState('');
-  
-  // State of buildingPC 
-  const [startBuild, setStartBuild] = useState(false)
+  const [pcName, setPcName] = useState("");
+
+  // State of buildingPC
+  const [startBuild, setStartBuild] = useState(false);
 
   const handleAddToCart = async () => {
     console.log("button pressed");
-    const response = await fetch("http://localhost:5005/getEntireCartWithoutPrice", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify({ userId: "112" }),
-    });
-  
+    const response = await fetch(
+      "http://localhost:5005/getEntireCartWithoutPrice",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ userId: "112" }),
+      }
+    );
+
     if (response.ok) {
       const cartData = await response.json();
       cartData["cart_item"]["pc_name"] = pcName;
-      
-      // insert quantity 
-      cartData["cart_item"]["parts"].map(item => {
-        item["quantity"] = 1
+
+      // insert quantity
+      cartData["cart_item"]["parts"].map((item) => {
+        item["quantity"] = 1;
       });
 
       // need to put [] at JSON.srtingify
       console.log(cartData);
-    
+
       const cartResponse = await fetch("http://localhost:5002/cart", {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json'
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify([cartData]), 
+        body: JSON.stringify({
+          customer_id: cartData.customer_id,
+          cart_data: cartData,
+        }),
         // credentials: 'include',
       });
-  
+
       if (!cartResponse.ok) {
         console.error("Failed to update the cart in the cart service.");
       }
     } else {
-
       console.error("Failed to get the cart without price.");
     }
   };
-  
-
 
   // Function to update the input value state
   function handlePcNameChange(event) {
     setPcName(event.target.value);
-
   }
 
   // Determine visibility of the addToCartSection based on pcName having text
   function shouldShowAddToCart() {
-    return pcName.trim() !== '';
+    return pcName.trim() !== "";
   }
 
   // function to startBuilding
   async function clickStartBuild() {
-    setStartBuild(true)
+    setStartBuild(true);
     const response = await fetch("http://localhost:5005/createPc", {
       method: "POST",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
-      credentials: 'include', 
+      credentials: "include",
       body: JSON.stringify({
-        userId: "112"
-      })
+        userId: "112",
+      }),
     });
   }
 
@@ -202,57 +207,91 @@ export function BuildPC() {
   var sections = Object.keys(compiledData);
   const HideEnterPcName = Object.values(selectedStatusDict).includes(false);
 
-
   return (
     <>
-      <div id="createPC" className={`flex flex-col items-center mx-auto bg-blue-500 p-20 my-20 w-4/5 rounded-lg ${ startBuild ? 'hidden' : ''}`}>
+      <div
+        id="createPC"
+        className={`flex flex-col items-center mx-auto bg-blue-500 p-20 my-20 w-4/5 rounded-lg ${
+          startBuild ? "hidden" : ""
+        }`}
+      >
         <section>
           <p className=" text-5xl font-mono">Build your Dream PC!</p>
-          <button onClick={clickStartBuild} id="startBuild" className=" bg-violet-800 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all mt-10">Begin Building</button>
+          <button
+            onClick={clickStartBuild}
+            id="startBuild"
+            className=" bg-violet-800 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all mt-10"
+          >
+            Begin Building
+          </button>
         </section>
       </div>
 
-    <div className={`flex mx-auto ${startBuild ? '' : 'hidden'}`} style={{ width: '100%' }}>
-    <div style={{ width: '80%' }}>
-      {sections.map((section) => {
-        return (
-          <Accordion key={section} name={section}>
-            {Object.keys(compiledData[section]).map((part_category) => {
-              return (
-                <Dropdown
-                  key={part_category}
-                  component={part_category}
-                  partInfo={compiledData[section]}
-                  updateTotalPrice={updateTotalPrice}
-                  selectedStatusDict={selectedStatusDict}
-                  setSelectedStatusDict={setSelectedStatusDict}
-                  setPcName={setPcName}
-                  pcName={pcName}
-                />
-              );
-            })}
-          </Accordion>
-        );
-      })}
-    </div>
-    <div style={{ width: '20%' }}>
-    <PriceShow totalPrice={totalPrice} />
-    </div>
-  </div>
-
-      <div className="flex justify-center w-full">
-        <div id="endingSection" className="flex justify-between items-center w-5/5">
-          <div id="enterPcName" className={`m-2 mt-2 ${HideEnterPcName ? 'hidden' : '' }`}>
-            <label htmlFor="pcName" className="mr-2">PC Name</label>
-            <input id="pcName" placeholder="Your PC's name" className="border border-blue p-2 rounded-md" value={pcName} onChange={handlePcNameChange}></input>
-          </div>
-          <div id="addToCartSection" className={`m-2 mt-2 ${shouldShowAddToCart() ? '' : 'hidden'}`}>
-          <button id="addToCart" onClick={handleAddToCart} className="bg-violet-700 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all">Add to Cart</button>
-          </div>
+      <div
+        className={`flex mx-auto ${startBuild ? "" : "hidden"}`}
+        style={{ width: "100%" }}
+      >
+        <div style={{ width: "80%" }}>
+          {sections.map((section) => {
+            return (
+              <Accordion key={section} name={section}>
+                {Object.keys(compiledData[section]).map((part_category) => {
+                  return (
+                    <Dropdown
+                      key={part_category}
+                      component={part_category}
+                      partInfo={compiledData[section]}
+                      updateTotalPrice={updateTotalPrice}
+                      selectedStatusDict={selectedStatusDict}
+                      setSelectedStatusDict={setSelectedStatusDict}
+                      setPcName={setPcName}
+                      pcName={pcName}
+                    />
+                  );
+                })}
+              </Accordion>
+            );
+          })}
+        </div>
+        <div style={{ width: "20%" }}>
+          <PriceShow totalPrice={totalPrice} />
         </div>
       </div>
 
-      
+      <div className="flex justify-center w-full">
+        <div
+          id="endingSection"
+          className="flex justify-between items-center w-5/5"
+        >
+          <div
+            id="enterPcName"
+            className={`m-2 mt-2 ${HideEnterPcName ? "hidden" : ""}`}
+          >
+            <label htmlFor="pcName" className="mr-2">
+              PC Name
+            </label>
+            <input
+              id="pcName"
+              placeholder="Your PC's name"
+              className="border border-blue p-2 rounded-md"
+              value={pcName}
+              onChange={handlePcNameChange}
+            ></input>
+          </div>
+          <div
+            id="addToCartSection"
+            className={`m-2 mt-2 ${shouldShowAddToCart() ? "" : "hidden"}`}
+          >
+            <button
+              id="addToCart"
+              onClick={handleAddToCart}
+              className="bg-violet-700 p-2 rounded-md text-neutral-300 hover:bg-violet-950 transition-all"
+            >
+              Add to Cart
+            </button>
+          </div>
+        </div>
+      </div>
     </>
   );
 }

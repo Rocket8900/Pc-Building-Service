@@ -8,7 +8,7 @@ export function Cart() {
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(undefined);
   const [partDetails, setPartDetails] = useState(undefined);
-  const customerID = "Salah";
+  const customerID = 112;
 
   // Get Cart Data & Total bill on mount
   useEffect(() => {
@@ -46,7 +46,7 @@ export function Cart() {
 
               if (partsResponse.status == 200) {
                 const partDetails = await partsResponse.json();
-                itemTotal += partDetails.part_price * partDetails.quantity;
+                itemTotal += partDetails.part_price;
                 partDetailList[part.parts_id] = partDetails;
               }
             }
