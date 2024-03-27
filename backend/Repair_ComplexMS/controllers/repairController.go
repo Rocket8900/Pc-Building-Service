@@ -3,10 +3,38 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
+
+var secretKey = []byte("SantaClause123")
+
+func verifyToken(tokenString string, secretKey []byte) (jwt.MapClaims, error) {
+
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secretKey, nil
+	})
+
+	if err != nil {
+		log.Printf("Error parsing token: %v", err)
+		return nil, fmt.Errorf("error parsing token: %v", err)
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	log.Printf("Invalid token: %s", tokenString)
+	return nil, fmt.Errorf("invalid token")
+}
 
 func CreateRepair(context *gin.Context) {
 	// var r models.Repair
@@ -66,7 +94,6 @@ func UpdateRepairStatus(context *gin.Context) {
 	requestLogData := map[string]interface{}{
 		"routingKey": "*.log",
 		"data": map[string]interface{}{
-			"type":     "repairemail",
 			"purpose":  "updateStatus",
 			"repairID": requestBody.RepairID,
 			"status":   requestBody.Status,
@@ -122,8 +149,50 @@ func UpdateRepairStatus(context *gin.Context) {
 
 func UpdateRepairEmployee(context *gin.Context) {
 	var requestBody struct {
-		RepairID   string `json:"RepairID" binding:"required"`
-		EmployeeID string `json:"EmployeeID" binding:"required"`
+		RepairID string `json:"RepairID" binding:"required"`
+	}
+
+	authHeader := context.GetHeader("Authorization")
+
+	if len(authHeader) < 7 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
+		return
+	}
+	tokenString := authHeader[7:]
+	claims, err := verifyToken(tokenString, secretKey)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userMap, ok := claims["user_id"].(map[string]interface{})
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID claim is not a map"})
+		return
+	}
+
+	EmployeeNameRaw, ok := userMap["name"]
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found within nested map"})
+		return
+	}
+
+	EmployeeName, ok := EmployeeNameRaw.(string)
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID is not a string"})
+		return
+	}
+
+	userIDRaw, ok := userMap["user_id"]
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found within nested map"})
+		return
+	}
+
+	EmployeeID, ok := userIDRaw.(string)
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID is not a string"})
+		return
 	}
 
 	// Bind the request body to the struct
@@ -132,11 +201,177 @@ func UpdateRepairEmployee(context *gin.Context) {
 		return
 	}
 
-	// Check if the Repair ID and Employee ID are provided
-	if requestBody.RepairID == "" || requestBody.EmployeeID == "" {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Repair ID and employee id are required"})
+	// Check if the Repair ID and status are provided
+	if requestBody.RepairID == "" || EmployeeID == "" {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Repair ID and status are required"})
 		return
 	}
+
+	// Define the data to be sent to repair simple
+	requestData := map[string]string{
+		"RepairID":   requestBody.RepairID,
+		"employeeID": EmployeeID,
+	}
+
+	// Define the data to be sent to email ms
+	requestEmailData := map[string]interface{}{
+		"routingKey": "*.email",
+		"data": map[string]interface{}{
+			"type":         "repairemail",
+			"purpose":      "assignEmployee",
+			"repairID":     requestBody.RepairID,
+			"employeeName": EmployeeName,
+		},
+	}
+
+	// Define the data to be sent to log ms
+	requestLogData := map[string]interface{}{
+		"routingKey": "*.log",
+		"data": map[string]interface{}{
+			"purpose":      "assignEmployee",
+			"repairID":     requestBody.RepairID,
+			"employeeName": EmployeeName,
+		},
+	}
+
+	// Convert requestData to JSON
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	jsonEmailData, errs := json.Marshal(requestEmailData)
+	if errs != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	jsonLogData, errs := json.Marshal(requestLogData)
+	if errs != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Send an email regarding the order having a status update
+	_, err = client.Post("http://localhost:3200/api/data", "application/json", bytes.NewBuffer(jsonEmailData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Send a post to simple repair ms to update the repair status
+	_, err = client.Post("http://localhost:8080/repair/updaterepairemployee", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Send to logs regarding the order having a status update
+	_, err = client.Post("http://localhost:3200/api/data", "application/json", bytes.NewBuffer(jsonLogData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Return success response
+	context.JSON(http.StatusOK, gin.H{"message": "Repair status updated successfully"})
+
+}
+
+func UpdateRepairPart(context *gin.Context) {
+	var requestBody struct {
+		RepairID   string `json:"RepairID" binding:"required"`
+		RepairPart string `json:"RepairPart" binding:"required"`
+	}
+
+	// Bind the request body to the struct
+	if err := context.BindJSON(&requestBody); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Check if the Repair ID and status are provided
+	if requestBody.RepairID == "" || requestBody.RepairPart == "" {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Repair ID and part are required"})
+		return
+	}
+
+	// Define the data to be sent to repair simple
+	requestData := map[string]string{
+		"RepairID":   requestBody.RepairID,
+		"RepairPart": requestBody.RepairPart,
+	}
+
+	// Define the data to be sent to email ms
+	requestEmailData := map[string]interface{}{
+		"routingKey": "*.email",
+		"data": map[string]interface{}{
+			"type":       "repairemail",
+			"purpose":    "repairPart",
+			"repairID":   requestBody.RepairID,
+			"RepairPart": requestBody.RepairPart,
+		},
+	}
+
+	// Define the data to be sent to log ms
+	requestLogData := map[string]interface{}{
+		"routingKey": "*.log",
+		"data": map[string]interface{}{
+			"purpose":    "repairPart",
+			"repairID":   requestBody.RepairID,
+			"RepairPart": requestBody.RepairPart,
+		},
+	}
+
+	// Convert requestData to JSON
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	jsonEmailData, errs := json.Marshal(requestEmailData)
+	if errs != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	jsonLogData, errs := json.Marshal(requestLogData)
+	if errs != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Send an email regarding the order having a status update
+	_, err = client.Post("http://localhost:3200/api/data", "application/json", bytes.NewBuffer(jsonEmailData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Send a post to simple repair ms to update the repair status
+	_, err = client.Post("http://localhost:8080/repair/updaterepairpart", "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Send to logs regarding the order having a status update
+	_, err = client.Post("http://localhost:3200/api/data", "application/json", bytes.NewBuffer(jsonLogData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Return success response
+	context.JSON(http.StatusOK, gin.H{"message": "Repair status updated successfully"})
 
 }
 

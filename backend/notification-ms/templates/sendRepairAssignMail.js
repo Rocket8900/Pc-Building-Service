@@ -22,16 +22,17 @@ async function sendRepairStatusMail(message) {
     const mail_options = {
       from: `ESDShop <esdtimez@gmail.com>`,
       to: "nashwyns.2022@smu.edu.sg",
-      subject: `There has been an update to your order status`,
+      subject: `Your Repair has just been assigned an employee`,
       html: get_html_message(message),
     };
   
     // Email Content
     function get_html_message(message) {
       return `
-              <h3>Congratulations ${message.repairID}!</h3>
-              <div>Your order has completed!.</div>
-              <div>Do come down to our office and collect your repaired pc.</div>
+              <h3>We have an update for your repair: ${message.repairID}!</h3>
+              <div>Your repair has just been assigned to an employee!.</div>
+              <div>${message.employeeName} has been assigned to your repair! Once the fault has been identified, you will be updated.</div>
+              
           `;
     }
   

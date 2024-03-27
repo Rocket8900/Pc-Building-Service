@@ -67,9 +67,35 @@ export const updateRepairStatus = async (id, updatedStatus) => {
   });
 }
 
-export const updateRepairEmployee = async (id) => {
-  return instance.post(`${REPAIR_BASE_URL}/updaterepairemployee`, {
+export const updateRepairStatusSimple = async (id, status) => {
+  return axios.post(`${REPAIR_BASE_URL}/updaterepairstatus`, {
     RepairID: id,
+    Status: status
+  })
+  .then(response => {
+    return response.data; 
+  })
+  .catch(error => {
+    console.error("Error fetching repairs:", error);
+  });
+}
+
+export const updateRepairEmployee = async (id) => {
+  return instance.post(`http://localhost:8888/repair/updaterepairemployee`, {
+    RepairID: id,
+  })
+  .then(response => {
+    return response.data; 
+  })
+  .catch(error => {
+    console.error("Error fetching repairs:", error);
+  });
+}
+
+export const updateRepairPart = async (id, part) => {
+  return instance.post(`http://localhost:8888/repair/updaterepairpart`, {
+    RepairID: id,
+    RepairPart: part,
   })
   .then(response => {
     return response.data; 

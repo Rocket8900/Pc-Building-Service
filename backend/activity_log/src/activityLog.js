@@ -5,12 +5,12 @@ const { initializeApp } = require("firebase/app");
 
 // Firebase configuration (Retrieved from environment variable)
 const firebaseConfig = {
-  apiKey: process.env.FIREBASE_API_KEY,
-  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.FIREBASE_APP_ID,
+  apiKey: "AIzaSyDTCXW8ScG4qE-uZEpdwz-zkjuiC5KhFHQ",
+  authDomain: "esdtimez.firebaseapp.com",
+  projectId: "esdtimez",
+  storageBucket: "esdtimez.appspot.com",
+  messagingSenderId: "1093698459831",
+  appId: "1:1093698459831:web:76e151390544a0b7bf5532",
 };
 
 // Initialize Firebase
@@ -43,7 +43,7 @@ async function consumingActivity() {
   try {
     // Connecting to the RabbitMQ
     // RABBITMQ_URL="amqp://localhost:15672”
-    const connection = await amqp.connect("amqp://host.docker.internal:5672");
+    const connection = await amqp.connect("amqp://localhost:5672");
 
     // Creating a Channel
     const channel = await connection.createChannel();
@@ -54,6 +54,7 @@ async function consumingActivity() {
     await channel.bindQueue(queue, exchangeName, routingKey);
 
     console.log("Waiting for messages in %s. To exit press CTRL+C", queue);
+
 
     // Consuming the Message
     channel.consume(queue, (msg) => handleMessage(msg, queue), {
@@ -66,8 +67,16 @@ async function consumingActivity() {
 
 // 2. Function to send the consumed messages from RabbitMQ to FireStone
 function handleMessage(msg, queue) {
-  const messageData = JSON.parse(msg.content.toString());
+
+if (Buffer.isBuffer(msg.content.toString())) {
+  console.log("it is a buffer")
+  const messageContent = msg.content.toString();
+  const messageData = JSON.parse(messageContent);
   settingDocuments(messageData, queue);
+} else {
+  const messageData = JSON.parse(messageContent);
+  settingDocuments(messageData, queue);
+}
 }
 
 // 3. Sending message to Firestore

@@ -22,16 +22,18 @@ async function sendRepairStatusMail(message) {
     const mail_options = {
       from: `ESDShop <esdtimez@gmail.com>`,
       to: "nashwyns.2022@smu.edu.sg",
-      subject: `There has been an update to your order status`,
+      subject: `We found what has been giving you trouble`,
       html: get_html_message(message),
     };
   
     // Email Content
     function get_html_message(message) {
       return `
-              <h3>Congratulations ${message.repairID}!</h3>
-              <div>Your order has completed!.</div>
-              <div>Do come down to our office and collect your repaired pc.</div>
+              <h3>We have an update for your repair: ${message.repairID}!</h3>
+              <div>The issue with your repair has been identified.</div>
+              <div>Our employee has found that ${message.RepairPart} was faulty. Since your order is within our warranty period, we are replacing this free of charge!!</div>
+              <div>Hang tight and we will let you know once the repair is done and ready to be picked up</div>
+              
           `;
     }
   

@@ -13,7 +13,7 @@ func main() {
 	server.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST"},
-		AllowHeaders:     []string{"Origin, Content-Type"},
+		AllowHeaders:     []string{"Authorization", "Origin, Content-Type"},
 		ExposeHeaders:    []string{"Content-Length, Access-Control-Allow-Origins, Access-Control-Allow-Credentials, Content-Type"},
 		AllowCredentials: true,
 	}))
@@ -24,6 +24,7 @@ func main() {
 	server.POST("/repair/deleterepair", controllers.DeleteRepair)
 	server.POST("/repair/updaterepairprice", controllers.UpdateRepairPrice)
 	server.POST("/repair/updaterepairemployee", controllers.UpdateRepairEmployee)
+	server.POST("/repair/updaterepairpart", controllers.UpdateRepairPart)
 
 	server.Run(":8888")
 }

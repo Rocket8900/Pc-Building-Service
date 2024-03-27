@@ -101,40 +101,10 @@ func UpdateRepairStatus(context *gin.Context) {
 	context.JSON(http.StatusOK, updatedRepair)
 }
 
-func UpdateRepairEmployee(context *gin.Context) {
+func UpdateRepairPart(context *gin.Context) {
 	var requestBody struct {
-		RepairID string `json:"RepairID" binding:"required"`
-	}
-
-	authHeader := context.GetHeader("Authorization")
-
-	if len(authHeader) < 7 {
-		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
-		return
-	}
-	tokenString := authHeader[7:]
-	claims, err := verifyToken(tokenString, secretKey)
-	if err != nil {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
-		return
-	}
-
-	userMap, ok := claims["user_id"].(map[string]interface{})
-	if !ok {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID claim is not a map"})
-		return
-	}
-
-	userIDRaw, ok := userMap["user_id"]
-	if !ok {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found within nested map"})
-		return
-	}
-
-	EmployeeID, ok := userIDRaw.(string)
-	if !ok {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID is not a string"})
-		return
+		RepairID   string `json:"RepairID" binding:"required"`
+		RepairPart string `json:"RepairPart" binding:"required"`
 	}
 
 	// Bind the request body to the struct
@@ -143,14 +113,81 @@ func UpdateRepairEmployee(context *gin.Context) {
 		return
 	}
 
+	// Check if the Repair ID and status are provided
+	if requestBody.RepairID == "" || requestBody.RepairPart == "" {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Repair ID and status are required"})
+		return
+	}
+
+	// Update the RepairPart of the repair
+	if err := models.DB.Model(&models.Repair{}).Where("repair_id = ?", requestBody.RepairID).Update("repair_part", requestBody.RepairPart).Error; err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update repair status"})
+		return
+	}
+
+	// Retrieve the updated repair record
+	var updatedRepair models.Repair
+	if err := models.DB.Where("repair_id = ?", requestBody.RepairID).First(&updatedRepair).Error; err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve updated repair"})
+		return
+	}
+
+	// Return the updated repair in the response
+	context.JSON(http.StatusOK, updatedRepair)
+}
+
+func UpdateRepairEmployee(context *gin.Context) {
+	var requestBody struct {
+		RepairID   string `json:"RepairID" binding:"required"`
+		EmployeeID string `json:"EmployeeID" `
+	}
+
+	// authHeader := context.GetHeader("Authorization")
+
+	// if len(authHeader) < 7 {
+	// 	context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
+	// 	return
+	// }
+	// tokenString := authHeader[7:]
+	// claims, err := verifyToken(tokenString, secretKey)
+	// if err != nil {
+	// 	context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+	// 	return
+	// }
+
+	// userMap, ok := claims["user_id"].(map[string]interface{})
+	// if !ok {
+	// 	context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID claim is not a map"})
+	// 	return
+	// }
+
+	// userIDRaw, ok := userMap["user_id"]
+	// if !ok {
+	// 	context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found within nested map"})
+	// 	return
+	// }
+
+	// EmployeeID, ok := userIDRaw.(string)
+	// if !ok {
+	// 	context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID is not a string"})
+	// 	return
+	// }
+
+	// Bind the request body to the struct
+	if err := context.BindJSON(&requestBody); err != nil {
+		fmt.Println("Error binding JSON:", err)
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
 	// Check if the Repair ID and Employee ID are provided
-	if requestBody.RepairID == "" || EmployeeID == "" {
+	if requestBody.RepairID == "" {
 		context.JSON(http.StatusBadRequest, gin.H{"error": "Repair ID and employee id are required"})
 		return
 	}
 
 	// Update the employee assigned to the repair
-	if err := models.DB.Model(&models.Repair{}).Where("repair_id = ?", requestBody.RepairID).Update("employee_id", EmployeeID).Error; err != nil {
+	if err := models.DB.Model(&models.Repair{}).Where("repair_id = ?", requestBody.RepairID).Update("employee_id", requestBody.EmployeeID).Error; err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update repair status"})
 		return
 	}

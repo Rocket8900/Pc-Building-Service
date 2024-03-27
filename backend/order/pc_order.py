@@ -9,7 +9,7 @@ from datetime import datetime
 app = Flask(__name__)
 CORS(app)
 #'mysql+mysqlconnector://root:root@localhost:8889/pc_order'
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://admin:Cartdbpass@cartdb.cpw8i20y0wi5.ap-southeast-1.rds.amazonaws.com/pc_order'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
@@ -264,4 +264,4 @@ def get_order_total_price(customer_id, order_id):
 
 if __name__ == '__main__':
     print("This is flask for " + os.path.basename(__file__) + ": manage orders ...")
-    app.run(host='0.0.0.0', port=5001, debug=True)
+    app.run(host='0.0.0.0', port=5009, debug=True)

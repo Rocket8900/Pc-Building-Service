@@ -44,6 +44,7 @@ func main() {
 	server.GET("/repair/getuserrepairs", controllers.GetUserRepairs)
 	server.POST("/repair/getrepairbyid", controllers.GetRepairByID)
 	server.POST("/repair/updaterepairemployee", controllers.UpdateRepairEmployee)
+	server.POST("/repair/updaterepairpart", controllers.UpdateRepairPart)
 
 	server.Run(":8080")
 }

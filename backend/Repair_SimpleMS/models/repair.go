@@ -13,11 +13,13 @@ var DB *gorm.DB
 type Repair struct {
 	RepairID   string `gorm:"primaryKey"`
 	UserID     string `binding:"required"`
+	OrderID    string
 	Status     string `binding:"required"`
 	Price      int
 	CreatedAt  time.Time `gorm:"autoCreateTime"`
 	UpdatedAt  time.Time `gorm:"autoUpdateTime"`
 	EmployeeID string
+	RepairPart string
 }
 
 func InitializeDB(db *gorm.DB) {

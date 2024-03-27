@@ -10,12 +10,12 @@ function Login() {
 
   const loginSuccess = (tokenResponse) => {
     console.log(tokenResponse)
-    googleAuthAPI(tokenResponse).then((res) => {localStorage.setItem("AUTH_KEY", res); })
+    googleAuthAPI(tokenResponse).then((res) => {localStorage.setItem("AUTH_KEY", res); navigate('/dashboard')})
   };
 
   useEffect(() => {
     if(localStorage.getItem("AUTH_KEY") != null){
-      // navigate('/dashboard')
+      navigate('/dashboard')
     }
   });
 

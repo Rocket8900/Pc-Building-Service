@@ -24,6 +24,7 @@ def generate_jwt(user_id,user_role):
         'exp': datetime.datetime.now(datetime.UTC) + datetime.timedelta(hours=3),
         'iat': datetime.datetime.now(datetime.UTC)
     }
+    print(payload)
     token = jwt.encode(payload, SECRET_KEY, algorithm='HS256')
     return token
 
@@ -68,7 +69,8 @@ def get_jwt():
 
     user_info = {
         'user_id': token_info.get('sub'),  
-        'name': token_info.get('name'),  
+        'name': token_info.get('name'), 
+        'email': token_info.get('email'), 
     }
     jwt_token = generate_jwt(user_info, "customer")
 
