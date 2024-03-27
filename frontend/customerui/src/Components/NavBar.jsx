@@ -29,14 +29,14 @@ export function NavBar() {
             </Link>
           </li>
           {/* Repair */}
-          <li>
+          {/* <li>
             <Link
               to="/repair-pc"
               className="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-white dark:bg-blue-600 md:dark:bg-transparent"
             >
               Repair
             </Link>
-          </li>
+          </li> */}
           {/* Cart */}
           <li>
             <Link
@@ -46,8 +46,17 @@ export function NavBar() {
               Cart
             </Link>
           </li>
+          {/* Orders */}
+          <li>
+            <Link
+              to="/orders"
+              className="block py-2 px-3 text-white bg-blue-700 rounded md:bg-transparent md:text-blue-700 md:p-0 md:dark:text-white dark:bg-blue-600 md:dark:bg-transparent"
+            >
+              Orders
+            </Link>
+          </li>
 
-          {/* Account & Orders (DROPDOWN) */}
+          {/* Account & Orders (DROPDOWN)
           <div className="group">
             <button
               onClick={toggleDropdown}
@@ -104,10 +113,9 @@ export function NavBar() {
                     Repairs
                   </Link>
                 </li>
-                {/* More sub-menu items */}
               </ul>
             </div>
-          </div>
+          </div> */}
 
           {/* Login / Logout Button */}
           <li>

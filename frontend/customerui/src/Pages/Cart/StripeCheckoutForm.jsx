@@ -2,7 +2,7 @@ import { PaymentElement } from "@stripe/react-stripe-js";
 import { useState } from "react";
 import { useStripe, useElements } from "@stripe/react-stripe-js";
 
-export default function StripeCheckoutForm({ orders, customerID }) {
+export default function StripeCheckoutForm({ orders, auth_key }) {
   const stripe = useStripe();
   const elements = useElements();
 
@@ -25,7 +25,7 @@ export default function StripeCheckoutForm({ orders, customerID }) {
       elements,
       confirmParams: {
         // Redirected payment completion page
-        return_url: `${window.location.origin}/completion?customerID=${customerID}`,
+        return_url: `${window.location.origin}/completion?auth_key=${auth_key}`,
       },
     });
 

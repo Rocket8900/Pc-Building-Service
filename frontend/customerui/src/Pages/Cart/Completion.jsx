@@ -4,13 +4,13 @@ import { React, useEffect } from "react";
 export function Completion() {
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(window.location.search);
-  const customerID = searchParams.get("customerID") || undefined;
+  const auth_key = searchParams.get("auth_key") || undefined;
 
   // Once user gets to this page, trigger the post-payment processing in Handling Order CMS
   useEffect(() => {
     const postPaymentProcessing = async () => {
       try {
-        const response = await fetch(
+        await fetch(
           // `http://localhost:5100/post-payment-processing`
           `http://localhost:5100/post-payment-processing`,
           {
@@ -18,17 +18,15 @@ export function Completion() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ customer_id: customerID }),
+            body: JSON.stringify({ auth_key: auth_key }),
           }
         );
-
-        if (!response.ok) throw new Error("Failed to send confirmation email");
       } catch (error) {
         console.error("Error sending confirmation email");
       }
     };
 
-    if (customerID == undefined) navigate("/cart");
+    if (auth_key == undefined) navigate("/cart");
     postPaymentProcessing();
   }, []);
 

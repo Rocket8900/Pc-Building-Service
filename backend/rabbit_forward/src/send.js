@@ -20,7 +20,7 @@ app.post("/api/data", async (req, res) => {
   console.log("Received data:", data);
 
   try {
-    const connection = await amqp.connect("amqp://localhost");
+    const connection = await amqp.connect("amqp://host.docker.internal:5672");
     const channel = await connection.createChannel();
 
     const exchange = "ESDTimez";

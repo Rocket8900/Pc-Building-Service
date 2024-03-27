@@ -38,11 +38,13 @@ services:
     container_name: order-ms
     environment:
       - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/pc_order
+      - PYTHONUNBUFFERED=1
     ports:
       - "5001:5001"
     networks:
       - kong-net
     restart: always
+
   ####################################################
   # Cart MS
   ####################################################
@@ -87,6 +89,8 @@ services:
       dockerfile: Dockerfile
     image: building-pc-cms
     container_name: building-pc-cms
+    env_file:
+      - .env
     ports:
       - "5005:5005"
     restart: always
@@ -176,6 +180,38 @@ services:
     container_name: rabbit-forward
     ports:
       - "3200:3200"
+    networks:
+      - kong-net
+    env_file:
+      - .env
+    restart: always
+
+  ########################################
+  # User Account Simple MS
+  ########################################
+  user-account-simple:
+    build:
+      context: ./UserAccount_SimpleMS
+      dockerfile: Dockerfile
+    image: user-account-simple
+    container_name: user-account-simple
+    ports:
+      - "5010:5010"
+    networks:
+      - kong-net
+    restart: always
+
+  ########################################
+  # User Account Complex MS
+  ########################################
+  user-account-complex:
+    build:
+      context: ./UserAccount_ComplexMS
+      dockerfile: Dockerfile
+    image: user-account-complex
+    container_name: user-account-complex
+    ports:
+      - "5015:5015"
     networks:
       - kong-net
     env_file:

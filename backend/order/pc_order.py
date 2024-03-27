@@ -1,10 +1,11 @@
 import os
+import jwt
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from flask_cors import CORS
-
 from datetime import datetime
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
@@ -14,6 +15,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
+
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+
+def decode_user(token: str):
+    """
+    :param token: jwt token
+    :return:
+    """
+    decoded_data = jwt.decode(jwt=token,
+                              key=SECRET_KEY,
+                              algorithms=["HS256"])
+
+    return decoded_data
 
 
 class Pc_Order(db.Model):
@@ -151,8 +165,19 @@ def find_by_order_id():
 #Get orders by customer
 @app.route("/retrieve-customer-order", methods=['POST'])
 def find_by_customer_id():
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
 
-    customer_id = request.json.get('customer_id', None)
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
+
     # Query all orders for the specified customer ID
     orders = Pc_Order.query.filter_by(customer_id=customer_id).all()
 
@@ -190,11 +215,20 @@ def find_by_customer_id():
 #Create Order
 @app.route("/order", methods=['POST'])
 def create_order():
-    customer_id = request.json.get('customer_id', None)
-    date= request.json.get('date', None)
-    order = Pc_Order(customer_id=customer_id, date=date)
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+    cart_data_received = request.json.get('cart_data')
+    date = cart_data_received['date']
+    cart_items = cart_data_received['cart_item']
 
-    cart_items = request.json.get('cart_item')
+    print(cart_items)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key_received['user_id']['user_id']
+    customer_name = auth_key_received['user_id']['name']
+
+    order = Pc_Order(customer_id=customer_id, date=date)
+    
     for item in cart_items:
         order_item = Order_Item(pc_name=item['pc_name'], price=item['price'])
         parts = item.get('parts', [])
