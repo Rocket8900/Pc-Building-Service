@@ -196,6 +196,8 @@ def create_cart():
     cart_data = request.json.get('cart_data')
     cart_item_data = cart_data['cart_item']
 
+    print(cart_item_data)
+
     # Directly access cart_item properties
     cart_item = Cart_Item(pc_name=cart_item_data['pc_name'], cart_id=cart.cart_id) # Set cart_id here
     parts = cart_item_data.get('parts', [])

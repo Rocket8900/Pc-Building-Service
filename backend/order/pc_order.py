@@ -162,6 +162,27 @@ def find_by_order_id():
         }
     ), 404
 
+# Temp route
+@app.route("/retrieve-recommended-products", methods=['POST'])
+def retrieve_recommended_products():
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
+
+    placeholder = [{'part_category': 'CPU', 'part_id': 52, 'part_name': 'AMD Ryzen 9 5900X', 'part_price': 549.75, 'quantity': 10}, {'part_category': 'Motherboard', 'part_id': 59, 'part_name': 'ASUS ROG Strix Z590-E Gaming', 'part_price': 299.75, 'quantity': 6}, {'part_category': 'Power Supply', 'part_id': 31, 'part_name': 'EVGA Supernova 850 G5 850W PSU', 'part_price': 149.75, 'quantity': 10}, {'part_category': 'Peripheral', 'part_id': 85, 'part_name': 'Logitech G Pro X Superlight Wireless Gaming Mouse', 'part_price': 149.5, 'quantity': 10}, {'part_category': 'Monitor', 'part_id': 17, 'part_name': 'LG UltraGear 27GN950-B 4K Monitor', 'part_price': 799.5, 'quantity': 8}, {'part_category': 'GPU', 'part_id': 4, 'part_name': 'AMD Radeon RX 6800 XT', 'part_price': 649.5, 'quantity': 12}, {'part_category': 'RAM', 'part_id': 25, 'part_name': 'G.Skill Trident Z Neo 32GB DDR4', 'part_price': 199.75, 'quantity': 12}, {'part_category': 'Storage', 'part_id': 22, 'part_name': 'Crucial MX500 1TB SATA SSD', 'part_price': 109.5, 'quantity': 10}, {'part_category': 'Case', 'part_id': 34, 'part_name': 'Phanteks Eclipse P400A ATX Mid-Tower Case', 'part_price': 89.75, 'quantity': 12}]
+
+    return placeholder
+
+
 #Get orders by customer
 @app.route("/retrieve-customer-order", methods=['POST'])
 def find_by_customer_id():

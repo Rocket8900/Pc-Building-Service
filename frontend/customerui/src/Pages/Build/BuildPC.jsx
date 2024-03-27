@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function BuildPC() {
+  const navigate = useNavigate();
   const [auth_key, setAuth_key] = useState();
   const [parts, setParts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -32,7 +33,8 @@ export function BuildPC() {
 
   // Retrieve Auth Key from Local storage on mount
   useEffect(() => {
-    setAuth_key(localStorage.getItem("AUTH_KEY"));
+    const auth_key_retrieved = localStorage.getItem("AUTH_KEY");
+    setAuth_key(auth_key_retrieved);
   }, []);
 
   const updateTotalPrice = async () => {
@@ -98,7 +100,7 @@ export function BuildPC() {
 
       if (cartResponse.ok) {
         // Redirect the user after a successful update
-        window.location.href = "/cart"; // Replace with your desired path
+        window.location.href = "/cart";
       } else {
         console.error("Failed to update the cart in the cart service.");
       }

@@ -198,7 +198,6 @@ def get_all_parts_wo():
     else:
         return jsonify({"error": "User not found"}), 404
     
-# Alex changed 
 @app.route('/deleteAllParts', methods=['DELETE'])
 def delete_all_parts():
     # Retrieving customer_id from POST request

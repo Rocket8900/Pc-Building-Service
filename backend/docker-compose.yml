@@ -56,6 +56,7 @@ services:
     container_name: cart-ms
     environment:
       - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
+      - PYTHONUNBUFFERED=1
     ports:
       - "5002:5002"
     networks:
