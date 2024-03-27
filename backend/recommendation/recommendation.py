@@ -16,6 +16,9 @@ from flask import Flask, request, jsonify
 import random
 import json
 from huggingface_hub import hf_hub_download
+from huggingface_hub import Repository
+from datetime import datetime
+import os
 
 app = Flask(__name__)
 
@@ -83,11 +86,22 @@ def addPartCategoryToDf(df):
         return f'Other Error: {err}'
 
 
-def load_predicted_df():
-    return pd.read_pickle('predicted_df.pkl')
 
-def load_utility_matrix():
-    return pd.read_pickle('utility_matrix.pkl')
+def load_predicted_df(model_id):
+    filename = "predicted_df.pkl"
+    predicted_df_path = hf_hub_download(repo_id=model_id, filename=filename)
+    predicted_df = pd.read_pickle(predicted_df_path)
+
+    return predicted_df
+
+def load_utility_matrix(model_id):
+
+    filename = "utility_matrix.pkl"
+    utility_matrix_path = hf_hub_download(repo_id=model_id, filename=filename)
+    utility_matrix = pd.read_pickle(utility_matrix_path)
+
+    return utility_matrix
+
 
 def recommend_components_for_user(user_id, original_df, predicted_df, top_n=5):
     bought_components = original_df.loc[user_id][original_df.loc[user_id] > 0].index
@@ -168,6 +182,7 @@ parts_info, df =addPartCategoryToDf(df)
 
 
 
+
 #Updating 
 @app.route('/update', methods=['POST'])
 def update():
@@ -176,8 +191,8 @@ def update():
     sigma = np.diag(sigma)
     predicted_ratings = np.dot(np.dot(U, sigma), VT)
     predicted_df = pd.DataFrame(predicted_ratings, index=utility_matrix.index, columns=utility_matrix.columns)
-    predicted_df.to_pickle('predicted_df.pkl')
-    utility_matrix.to_pickle('utility_matrix.pkl')
+    predicted_df.to_pickle('esd_gnn/predicted_df.pkl')
+    utility_matrix.to_pickle('esd_gnn/utility_matrix.pkl')
 
     G_dgl, component_to_idx, idx_to_component = create_graph_from_df(df)
 
@@ -188,7 +203,7 @@ def update():
 
     config = {"in_feats": in_feats, "h_feats": h_feats}
 
-    with open('config.json', 'w') as f:
+    with open('esd_gnn/config.json', 'w') as f:
         json.dump(config, f, indent=4)
 
     model = ComponentGNN(in_feats=in_feats, h_feats=h_feats)
@@ -204,7 +219,6 @@ def update():
         optimizer.zero_grad()
             
         logits = model(G_dgl, G_dgl.ndata['feat']) 
-            
 
         pos_score = (logits[pos_u] * logits[pos_v]).sum(dim=1)
         neg_score = (logits[neg_u] * logits[neg_v]).sum(dim=1)
@@ -216,15 +230,25 @@ def update():
             
         loss.backward()
         optimizer.step()
-
             
         print(f'Epoch {epoch}: Loss {loss.item()}')
-    
 
+    local_dir = "./esd_gnn"
+    hf_username = "clarissaksq"
+    repo_name = "esd_gnn"
+    hf_api_token = os.environ.get('HF_TOKEN')
+    print(hf_api_token)
     torch.save(model.state_dict(), 'esd_gnn/model_gnn.pth')
-    dgl.save_graphs('graph_data.bin', [G_dgl])
-    with open('component_to_idx.json', 'w') as f:
+    dgl.save_graphs('esd_gnn/graph_data.bin', [G_dgl])
+    with open('esd_gnn/component_to_idx.json', 'w') as f:
         json.dump(component_to_idx, f)
+    repo = Repository(local_dir=local_dir,
+                  clone_from=f"{hf_username}/{repo_name}",
+                  use_auth_token=hf_api_token)
+    current_datetime = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    commit_message = f"{current_datetime}"
+    repo.push_to_hub(commit_message=commit_message)
+    return "successful update"
 
 
 def load_model(model_id, filename):
@@ -238,21 +262,23 @@ def load_model(model_id, filename):
     return model
     
 
-
 @app.before_request
 def load_data():
     app.before_request_funcs[None].remove(load_data)
     global model, G_dgl, component_to_idx
-
     model_id = "clarissaksq/esd_gnn"
     filename = "model_gnn.pth"
     model = load_model(model_id, filename)  
-    
-    G_dgl_list = dgl.load_graphs('graph_data.bin')
+    graph_data_path = hf_hub_download(repo_id=model_id, filename="graph_data.bin")
+    G_dgl_list = dgl.load_graphs(graph_data_path)
     G_dgl = G_dgl_list[0][0]  
-    
-    with open('component_to_idx.json', 'r') as f:
+    component_to_idx_path = hf_hub_download(repo_id=model_id, filename="component_to_idx.json")
+    with open(component_to_idx_path, 'r') as f:
         component_to_idx = json.load(f)
+    print("load data success")
+    print(component_to_idx)
+    print(G_dgl)
+
 
 @app.route('/retrieve-recommended-products', methods=['POST'])
 def recommend():
@@ -263,32 +289,42 @@ def recommend():
         return jsonify({'error': 'User ID is required.'}), 400
 
     try:
-        predicted_df = load_predicted_df()
-        utility_matrix = load_utility_matrix()
+        model_id = "clarissaksq/esd_gnn"
+        predicted_df = load_predicted_df(model_id)
+        print("predict matrix loaded")
+        utility_matrix = load_utility_matrix(model_id)
+        print("utility matrix loaded")
         recommendations = recommend_components_for_user(user_id, utility_matrix, predicted_df, top_n=10)
+        print("svd done: ", recommendations)
         features = G_dgl.ndata['feat']
         embeddings = model(G_dgl, features)
         embeddings = embeddings.detach().cpu().numpy()
-
-        cos_sim_matrix = cosine_similarity(embeddings)
-
+        print("embeddings done: ", embeddings)
+        # cos_sim_matrix = cosine_similarity(embeddings)
         user_components_df = recommendations
-        input_components = user_components_df['component_id'].unique().tolist()
-
-        input_embeddings = np.array([embeddings[component_to_idx[c]] for c in input_components if c in component_to_idx])
-
+        input_components = user_components_df.unique().tolist()
+        print("input components done: ", input_components)
+        print("component_to_idx: ",component_to_idx )
+        # input_embeddings = np.array([embeddings[component_to_idx[c]] for c in input_components if c in component_to_idx])
+        input_embeddings = np.array([embeddings[component_to_idx[str(c)]] for c in input_components if str(c) in component_to_idx])
+        print("input embeddings done: ", input_embeddings)
         sim_matrix = cosine_similarity(input_embeddings)
         distance_matrix = 1 - sim_matrix
         np.fill_diagonal(distance_matrix, 0)  
         linked = linkage(distance_matrix, 'single')
-
+        print("linked: ",linked)
+        print("starting clustering")
         clusters = fcluster(linked, t=1.5, criterion='distance')
-
-        clustered_components = {i: [] for i in range(1, max(clusters)+1)}
+        print("clusters: ", clusters)
+        clustered_components = {cluster_id: [] for cluster_id in set(clusters)}
         for idx, cluster_id in enumerate(clusters):
-            if input_components[idx] in component_to_idx:  
-                clustered_components[cluster_id].append(input_components[idx])
-
+            component_id = input_components[idx]
+            if str(component_id) in component_to_idx:
+                clustered_components[cluster_id].append(component_id)
+        # for idx, cluster_id in enumerate(clusters):
+        #     if input_components[idx] in component_to_idx:  
+        #         clustered_components[cluster_id].append(input_components[idx])
+        print("clustering done")
         for cluster_id, components in clustered_components.items():
             if len(components) > 1: 
                 print(f"Cluster {cluster_id}: Often bought together components: {components}")
@@ -296,11 +332,11 @@ def recommend():
                 print(f"Cluster {cluster_id}: Component {components} is less frequently bought with others or is an anomaly.")
 
         largest_cluster = max(clustered_components.keys(), key=lambda k: len(clustered_components[k]))
-
-        required_categories = ["CPU", "GPU", "RAM", "Storage", "Motherboard", "Power Supply", "Case", "Peripheral", "Monitor"]
+        print("largest_cluster: ", largest_cluster)
+        required_categories = ["CPU", "GPU", "RAM", "Storage", "Motherboard", "Power Supply", "Case", "Peripheral", "CPU Cooler"]
         selected_parts = []
         missing_categories = required_categories[:]
-
+        
         parts_in_cluster = [part for part in parts_info if part["part_id"] in clustered_components[largest_cluster]]
 
         for category in required_categories:
@@ -310,9 +346,7 @@ def recommend():
                 selected_part = parts_in_category[0]
                 selected_parts.append(selected_part)
                 missing_categories.remove(category) 
-        
-
-
+        print("missing categories: ", missing_categories)
         for category in missing_categories:
             parts_in_missing_category = [part for part in parts_info if part["part_category"] == category]
             
@@ -321,7 +355,8 @@ def recommend():
                 selected_parts.append(selected_part)
             else:
                 print(f"No available parts found for category {category}. It remains missing.")
-
+        selected_parts = [{**part, "quantity": 1} for part in selected_parts]
+        return selected_parts
 
     except Exception as e:
         return jsonify({'error': 'An error occurred processing your request.'}), 500
