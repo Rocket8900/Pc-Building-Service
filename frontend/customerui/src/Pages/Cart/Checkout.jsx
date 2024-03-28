@@ -37,8 +37,8 @@ export function Checkout() {
   // To Fetch the Publishable key from Server (Stripe)
   // http://localhost:3400/api/v1/config
   useEffect(() => {
-    // http://localhost:8000/api/v1/config (Kong)
-    fetch("http://localhost:3400/api/v1/config").then(async (r) => {
+    // http://localhost:3400/fetch-publishable-key (Kong)
+    fetch("http://localhost:8000/fetch-publishable-key").then(async (r) => {
       const { publishableKey } = await r.json();
       setStripePromise(loadStripe(publishableKey));
     });
@@ -58,11 +58,10 @@ export function Checkout() {
     }
   }, [total]);
 
-  // http://localhost:3400/create-payment-intent
   async function directToStripePayment() {
     const clientSecret = await fetch(
-      // http://localhost:8000/api/v1/create-payment-intent (Kong)
-      "http://localhost:3400/api/v1/create-payment-intent",
+      // http://localhost:3400/create-payment-intent (Kong)
+      "http://localhost:8000/create-payment-intent",
       {
         method: "POST",
         headers: {

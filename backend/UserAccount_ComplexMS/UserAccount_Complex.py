@@ -9,7 +9,8 @@ import datetime
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
+# CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
+CORS(app)
 
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key') 
 client_id = "103401913594-aq4cvr1j7uipabj86vjc4nnv4p418sh6.apps.googleusercontent.com"

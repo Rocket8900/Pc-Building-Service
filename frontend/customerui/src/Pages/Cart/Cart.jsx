@@ -13,8 +13,8 @@ export function Cart() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // http://localhost:8000/retrieve-cart (Kong)
-        const response = await fetch(`http://localhost:5002/retrieve-cart`, {
+        // http://localhost:5002/retrieve-cart (Kong)
+        const response = await fetch(`http://localhost:8000/retrieve-cart`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -36,7 +36,8 @@ export function Cart() {
           for (const item of cartData) {
             let itemTotal = 0;
             for (const part of item.parts) {
-              const partsResponse = await fetch("http://localhost:5950/part", {
+              // http://localhost:5950/part (Kong)
+              const partsResponse = await fetch("http://localhost:8000/part", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
@@ -112,8 +113,8 @@ export function Cart() {
   // _______ Clear Cart _______
   function clearCart() {
     const clearCart = async () => {
-      // http://localhost:8000/delete-cart (Kong)
-      const response = await fetch(`http://localhost:5002/delete-cart`, {
+      // http://localhost:5002/delete-cart (Kong)
+      const response = await fetch(`http://localhost:8000/delete-cart`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",

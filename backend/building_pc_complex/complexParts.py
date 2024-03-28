@@ -68,8 +68,8 @@ def create_pc():
     
     session[userId] = {"pc_name": "", "parts": [], "price": 0}
     session.modified = True
-    print(userId)
-    print(session[userId])
+    print("HERE", session)
+    print("HERE2", session[userId])
     return jsonify(session[userId]), 200
 
 @app.route('/editPcName', methods=['PUT'])

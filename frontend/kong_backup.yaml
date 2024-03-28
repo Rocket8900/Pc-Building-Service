@@ -1,0 +1,432 @@
+_format_version: "3.0"
+plugins:
+- config:
+    credentials: true
+    exposed_headers: null
+    headers: null
+    max_age: null
+    methods:
+    - GET
+    - HEAD
+    - PUT
+    - PATCH
+    - POST
+    - DELETE
+    - OPTIONS
+    - TRACE
+    - CONNECT
+    origins:
+    - http://localhost:5173
+    preflight_continue: false
+  enabled: true
+  name: cors
+  protocols:
+  - grpc
+  - grpcs
+  - http
+  - https
+services:
+- connect_timeout: 60000
+  enabled: true
+  host: building-pc-cms
+  name: addPart
+  path: /addPart
+  port: 5005
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: addPart
+    path_handling: v0
+    paths:
+    - /addPart
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: parts-ms
+  name: all-parts
+  path: /all-parts
+  port: 5950
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: fetch-all-parts
+    path_handling: v0
+    paths:
+    - /all-parts
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: cart-ms
+  name: cart
+  path: /cart
+  port: 5002
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: create-cart
+    path_handling: v0
+    paths:
+    - /cart
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: parts-ms
+  name: categories
+  path: /categories
+  port: 5950
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: fetch-categories
+    path_handling: v0
+    paths:
+    - /categories
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: payment-ms
+  name: create-payment-intent
+  path: /create-payment-intent
+  port: 3400
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: create-payment-intent
+    path_handling: v0
+    paths:
+    - /create-payment-intent
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: building-pc-cms
+  name: createPc
+  path: /createPc
+  port: 5005
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: create-pc
+    path_handling: v0
+    paths:
+    - /createPc
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: cart-ms
+  name: delete-cart
+  path: /delete-cart
+  port: 5002
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: delete-cart
+    path_handling: v0
+    paths:
+    - /delete-cart
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: payment-ms
+  name: fetch-publishable-key
+  path: /fetch-publishable-key
+  port: 3400
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    name: fetch-publishable-key
+    path_handling: v0
+    paths:
+    - /fetch-publishable-key
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: building-pc-cms
+  name: getEntireCartWithPrice
+  path: /getEntireCartWithPrice
+  port: 5005
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: get-cart-with-price
+    path_handling: v0
+    paths:
+    - /getEntireCartWithPrice
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: building-pc-cms
+  name: getEntireCartWithoutPrice
+  path: /getEntireCartWithoutPrice
+  port: 5005
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: get-cart-without-price
+    path_handling: v0
+    paths:
+    - /getEntireCartWithoutPrice
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: user-account-complex
+  name: get_jwt
+  path: /get_jwt
+  port: 5015
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: get_jwt
+    path_handling: v0
+    paths:
+    - /get_jwt
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: parts-ms
+  name: part
+  path: /part
+  port: 5950
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: part
+    path_handling: v0
+    paths:
+    - /part
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: handling-order-cms
+  name: post-payment-processing
+  path: /post-payment-processing
+  port: 5100
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: post-payment-processing
+    path_handling: v0
+    paths:
+    - /post-payment-processing
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: cart-ms
+  name: retrieve-cart
+  path: /retrieve-cart
+  port: 5002
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: retrieve-cart
+    path_handling: v0
+    paths:
+    - /retrieve-cart
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: recommendation-ms
+  name: retrieve-recommended-products
+  path: /retrieve-recommended-products
+  port: 5800
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: retrieve-recommended-products
+    path_handling: v0
+    paths:
+    - /retrieve-recommended-products
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
