@@ -7,7 +7,7 @@ from datetime import datetime
 import jwt
 from dotenv import load_dotenv
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})

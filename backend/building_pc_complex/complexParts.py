@@ -6,7 +6,7 @@ import jwt
 import os
 from dotenv import load_dotenv
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', "SantaClause123")
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
@@ -51,6 +51,8 @@ def fetch_part_details(part_id):
 def create_pc():
     # Retrieving customer_id from POST request
     auth_key_received = request.json.get('auth_key', None)
+
+    print("SK", SECRET_KEY)
 
     # Checking to see if Auth key is received
     if (auth_key_received is None):

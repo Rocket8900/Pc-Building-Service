@@ -10,7 +10,7 @@ import os
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/UserAccountDB"
 mongo = PyMongo(app)
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'default_fallback_secret_key')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 def token_required(f):
     @wraps(f)

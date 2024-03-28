@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 from datetime import datetime
 

@@ -23,7 +23,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import jwt
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 app = Flask(__name__)
 CORS(app)
