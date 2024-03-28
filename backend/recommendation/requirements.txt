@@ -1,0 +1,14 @@
+requests
+pandas
+torch==2.0.1
+dgl==1.1.2
+networkx
+scikit-learn
+numpy
+scipy
+flask
+huggingface_hub
+pydantic
+Flask-CORS
+python-dotenv
+PyJWT

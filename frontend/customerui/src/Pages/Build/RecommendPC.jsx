@@ -53,7 +53,7 @@ export function RecommendPC() {
       try {
         const response = await fetch(
           // `http://localhost:5800/retrieve-recommended-products`
-          `http://localhost:5001/retrieve-recommended-products`,
+          `http://localhost:5800/retrieve-recommended-products`,
           {
             method: "POST",
             headers: {
