@@ -44,14 +44,6 @@ export function Checkout() {
     });
   }, []);
 
-  // useEffect(() => {
-  //   if (cartTotal != undefined) {
-  //     // Object.entries(cartTotal).forEach(([item_id, price]) => {
-  //     //   setTotal((prev) => prev + parseFloat(price));
-  //     // });
-  //   }
-  // }, [cartTotal]);
-
   async function directToStripePayment() {
     const clientSecret = await fetch(
       // http://localhost:3400/create-payment-intent (Kong)
@@ -79,6 +71,7 @@ export function Checkout() {
     navigate("/cart");
   }
 
+  // Checks if there's a cartTotal & stripePromise before calling stripePayment
   useEffect(() => {
     if (cartTotal != 0 && stripePromise) {
       directToStripePayment();
