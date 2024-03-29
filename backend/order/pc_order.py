@@ -1,10 +1,11 @@
 import os
+import jwt
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from flask_cors import CORS
-
 from datetime import datetime
+from dotenv import load_dotenv
 
 app = Flask(__name__)
 CORS(app)
@@ -14,6 +15,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
+
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+
+def decode_user(token: str):
+    """
+    :param token: jwt token
+    :return:
+    """
+    decoded_data = jwt.decode(jwt=token,
+                              key=SECRET_KEY,
+                              algorithms=["HS256"])
+
+    return decoded_data
 
 
 class Pc_Order(db.Model):
@@ -148,11 +162,43 @@ def find_by_order_id():
         }
     ), 404
 
+# Temp route
+@app.route("/retrieve-recommended-products", methods=['POST'])
+def retrieve_recommended_products():
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
+
+    placeholder = [{'part_category': 'CPU', 'part_id': 52, 'part_name': 'AMD Ryzen 9 5900X', 'part_price': 549.75, 'quantity': 10}, {'part_category': 'Motherboard', 'part_id': 59, 'part_name': 'ASUS ROG Strix Z590-E Gaming', 'part_price': 299.75, 'quantity': 6}, {'part_category': 'Power Supply', 'part_id': 31, 'part_name': 'EVGA Supernova 850 G5 850W PSU', 'part_price': 149.75, 'quantity': 10}, {'part_category': 'Peripheral', 'part_id': 85, 'part_name': 'Logitech G Pro X Superlight Wireless Gaming Mouse', 'part_price': 149.5, 'quantity': 10}, {'part_category': 'Monitor', 'part_id': 17, 'part_name': 'LG UltraGear 27GN950-B 4K Monitor', 'part_price': 799.5, 'quantity': 8}, {'part_category': 'GPU', 'part_id': 4, 'part_name': 'AMD Radeon RX 6800 XT', 'part_price': 649.5, 'quantity': 12}, {'part_category': 'RAM', 'part_id': 25, 'part_name': 'G.Skill Trident Z Neo 32GB DDR4', 'part_price': 199.75, 'quantity': 12}, {'part_category': 'Storage', 'part_id': 22, 'part_name': 'Crucial MX500 1TB SATA SSD', 'part_price': 109.5, 'quantity': 10}, {'part_category': 'Case', 'part_id': 34, 'part_name': 'Phanteks Eclipse P400A ATX Mid-Tower Case', 'part_price': 89.75, 'quantity': 12}]
+
+    return placeholder
+
+
 #Get orders by customer
 @app.route("/retrieve-customer-order", methods=['POST'])
 def find_by_customer_id():
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
 
-    customer_id = request.json.get('customer_id', None)
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
+
     # Query all orders for the specified customer ID
     orders = Pc_Order.query.filter_by(customer_id=customer_id).all()
 
@@ -190,11 +236,20 @@ def find_by_customer_id():
 #Create Order
 @app.route("/order", methods=['POST'])
 def create_order():
-    customer_id = request.json.get('customer_id', None)
-    date= request.json.get('date', None)
-    order = Pc_Order(customer_id=customer_id, date=date)
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+    cart_data_received = request.json.get('cart_data')
+    date = cart_data_received['date']
+    cart_items = cart_data_received['cart_item']
 
-    cart_items = request.json.get('cart_item')
+    print(cart_items)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key_received['user_id']['user_id']
+    customer_name = auth_key_received['user_id']['name']
+
+    order = Pc_Order(customer_id=customer_id, date=date)
+    
     for item in cart_items:
         order_item = Order_Item(pc_name=item['pc_name'], price=item['price'])
         parts = item.get('parts', [])

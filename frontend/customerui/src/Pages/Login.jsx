@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import React, { useState, useEffect } from "react";
+import { GoogleOAuthProvider, GoogleLogin } from "@react-oauth/google";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -11,31 +11,31 @@ export function Login() {
 
   const loginSuccess = (tokenResponse) => {
     console.log(tokenResponse);
-    axios.post(`http://localhost:5001/get_jwt`, {tokenResponse})
-      .then(res => {
-        localStorage.setItem("AUTH_KEY", res.data); 
-        navigate('/');
+    axios
+      .post(`http://localhost:5015/get_jwt`, { tokenResponse })
+      .then((res) => {
+        localStorage.setItem("AUTH_KEY", res.data);
+        navigate("/");
       })
-      .catch(error => {
-        console.error('Error while fetching JWT:', error);
+      .catch((error) => {
+        console.error("Error while fetching JWT:", error);
       });
   };
 
   useEffect(() => {
-    if(localStorage.getItem("AUTH_KEY") != null){
-      navigate('/')
+    if (localStorage.getItem("AUTH_KEY") != null) {
+      navigate("/");
     }
   });
 
   return (
-      <div className="bg-white p-8 rounded shadow-md max-w-md w-full mx-auto text-center">
-        <GoogleOAuthProvider clientId={clientId} >
-          <GoogleLogin onSuccess={loginSuccess} />
-        </GoogleOAuthProvider>
-      </div>
+    <div className="bg-white p-8 rounded shadow-md max-w-md w-full mx-auto text-center">
+      <GoogleOAuthProvider clientId={clientId}>
+        <GoogleLogin onSuccess={loginSuccess} />
+      </GoogleOAuthProvider>
+    </div>
   );
 }
-
 
 //   const handleLogin = async () => {
 //     const redirectUri = "http://localhost:5001/login/google";

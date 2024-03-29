@@ -15,7 +15,7 @@ app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key')
 client_id = "103401913594-aq4cvr1j7uipabj86vjc4nnv4p418sh6.apps.googleusercontent.com"
 client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')  
 SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your_jwt_secret')
-redirect_uri = "http://localhost:5001/login/google"
+redirect_uri = "http://localhost:5015/login/google"
 
 def generate_jwt(user_id,user_role):
     payload = {
@@ -29,7 +29,7 @@ def generate_jwt(user_id,user_role):
     return token
 
 def check_or_create_user(user_data):
-    simple_service_url = "http://localhost:5002/user"
+    simple_service_url = "http://localhost:5010/user"
 
     response = requests.post(simple_service_url,
                              json=user_data)
@@ -69,8 +69,8 @@ def get_jwt():
 
     user_info = {
         'user_id': token_info.get('sub'),  
-        'name': token_info.get('name'), 
-        'email': token_info.get('email'), 
+        'name': token_info.get('name'),  
+        'email': token_info.get('email'),
     }
     jwt_token = generate_jwt(user_info, "customer")
 
@@ -147,4 +147,4 @@ def login_google():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True, port=5015)

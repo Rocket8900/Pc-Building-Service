@@ -9,7 +9,7 @@ export function Checkout() {
   const location = useLocation(); // Retrieve data from previous screens
   const { pathname } = useLocation();
 
-  const [customerID, setCustomerId] = useState("");
+  const [auth_key, setAuth_key] = useState("");
   const [cartItems, setCartItems] = useState();
   const [cartTotal, setCartTotal] = useState();
   const [partDetails, setPartDetails] = useState();
@@ -30,7 +30,7 @@ export function Checkout() {
     setCartItems(location.state.cartItems); // Retrieve cart from previous Cart Page
     setCartTotal(location.state.cartTotal); // Retrieve cart total from previous Cart Page
     setPartDetails(location.state.partDetails); // Retrieve cart from previous Cart Page
-    setCustomerId(location.state.customerID); // Retrieve Customer ID from previous Cart Page
+    setAuth_key(location.state.auth_key); // Retrieve Customer ID from previous Cart Page
   }, [location.state, navigate]);
 
   // ______ STRIPE STUFF ______
@@ -195,7 +195,7 @@ export function Checkout() {
                   <Elements stripe={stripePromise} options={clientSecret}>
                     <StripeCheckoutForm
                       orders={cartItems}
-                      customerID={customerID}
+                      auth_key={auth_key}
                     />
                   </Elements>
                 )}

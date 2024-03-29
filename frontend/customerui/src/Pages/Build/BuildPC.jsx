@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function BuildPC() {
+  const navigate = useNavigate();
+  const [auth_key, setAuth_key] = useState();
   const [parts, setParts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [totalPrice, setTotalPrice] = useState(0);
@@ -29,6 +31,12 @@ export function BuildPC() {
     Headset: false,
   });
 
+  // Retrieve Auth Key from Local storage on mount
+  useEffect(() => {
+    const auth_key_retrieved = localStorage.getItem("AUTH_KEY");
+    setAuth_key(auth_key_retrieved);
+  }, []);
+
   const updateTotalPrice = async () => {
     const response = await fetch(
       "http://localhost:5005/getEntireCartWithPrice",
@@ -39,11 +47,12 @@ export function BuildPC() {
         },
         credentials: "include",
         body: JSON.stringify({
-          userId: "112",
+          auth_key: auth_key,
         }),
       }
     );
     const data = await response.json();
+    console.log(data);
     setTotalPrice(data.cart_item.price);
   };
 
@@ -54,7 +63,6 @@ export function BuildPC() {
   const [startBuild, setStartBuild] = useState(false);
 
   const handleAddToCart = async () => {
-    console.log("button pressed");
     const response = await fetch(
       "http://localhost:5005/getEntireCartWithoutPrice",
       {
@@ -63,7 +71,7 @@ export function BuildPC() {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ userId: "112" }),
+        body: JSON.stringify({ auth_key: auth_key }),
       }
     );
 
@@ -85,14 +93,14 @@ export function BuildPC() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customer_id: cartData.customer_id,
+          auth_key: auth_key,
           cart_data: cartData,
         }),
       });
 
       if (cartResponse.ok) {
         // Redirect the user after a successful update
-        window.location.href = "/cart"; // Replace with your desired path
+        window.location.href = "/cart";
       } else {
         console.error("Failed to update the cart in the cart service.");
       }
@@ -121,7 +129,7 @@ export function BuildPC() {
       },
       credentials: "include",
       body: JSON.stringify({
-        userId: "112",
+        auth_key: auth_key,
       }),
     });
   }

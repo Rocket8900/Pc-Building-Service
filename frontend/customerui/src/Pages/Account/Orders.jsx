@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 export function Orders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const customerID = 112;
+  const auth_key = localStorage.getItem("AUTH_KEY");
 
   // Retrieve Orders on Mount
   useEffect(() => {
@@ -18,12 +18,12 @@ export function Orders() {
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ customer_id: customerID }),
+            body: JSON.stringify({ auth_key: auth_key }),
           }
         );
-
         if (response.status === 200) {
           const data = await response.json();
+          console.log(data);
           setOrders(data.data);
         }
       } catch (e) {
@@ -81,9 +81,6 @@ export function Orders() {
                             Total
                           </th>
                           <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Deliver to
-                          </th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Details
                           </th>
                         </tr>
@@ -93,7 +90,6 @@ export function Orders() {
                           <td>{order.order_id}</td>
                           <td>{order.date}</td>
                           <td>$ {formatter.format(total)}</td>
-                          <td>{order.customer_id}</td>
                           <td>
                             <a
                               href="#"

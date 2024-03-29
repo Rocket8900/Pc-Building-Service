@@ -4,6 +4,10 @@ import json
 import os
 from invokes import invoke_http
 from datetime import datetime
+import jwt
+from dotenv import load_dotenv
+
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}})
@@ -16,12 +20,38 @@ parts_url = 'http://host.docker.internal:5950/part'
 amqp_url = "http://host.docker.internal:3200/api/data"
 delete_cart_url = "http://host.docker.internal:5002/delete-cart"
 
+def decode_user(token: str):
+    """
+    :param token: jwt token
+    :return:
+    """
+    decoded_data = jwt.decode(jwt=token,
+                              key=SECRET_KEY,
+                              algorithms=["HS256"])
+
+    return decoded_data
+
 
 # Start
 @app.route("/post-payment-processing", methods=['POST'])
 def postPaymentProcessing():
     try:
-        customer_id = request.json.get('customer_id', None)
+        # Retrieving customer_id from POST request
+        auth_key_received = request.json.get('auth_key', None)
+
+        # Checking to see if Auth key is received
+        if (auth_key_received is None):
+            return jsonify({"error": "Auth key is missing"}), 400
+
+        # Decoding the Auth key
+        auth_key = decode_user(auth_key_received)
+
+        # Retrieving the customerID from Auth Key
+        customer_id = auth_key['user_id']['user_id']
+        orig_name = auth_key['user_id']['name']
+        customer_name = orig_name.replace(' _', '')
+        customer_email = auth_key['user_id']['email']
+
         # Get today's date
         today = datetime.today()
 
@@ -29,42 +59,49 @@ def postPaymentProcessing():
         formatted_date = today.strftime("%d %B %Y")
 
         # Retrieving Cart Data ( # 2 )
-        cart_data = retrieveCustomerCart(customer_id)
+        cart_data = retrieveCustomerCart(auth_key_received)
         print("HERE", cart_data)
         cart_data["data"]["date"] = formatted_date
         
         # Send Email with Cart Data ( # 12 )
-        sendConfirmationEmail(cart_data)
+        sendConfirmationEmail(cart_data, customer_name, customer_email)
 
         # Save cart data to order db with date ( # 1 )
-        sendCartDataToOrderDB(cart_data)
+        sendCartDataToOrderDB(cart_data, auth_key)
 
         # Send Logging for Order Success
         sendSuccessLog(cart_data, formatted_date, customer_id)
 
         # Delete Cart ( #4 )
-        deleteCustomerCart(customer_id)
+        deleteCustomerCart(auth_key_received)
+
+        return {
+            "code": 201,
+            "message": "Order Success!"
+        }
         
     except Exception as e:
         sendErrorLog(e, customer_id, formatted_date)
         
-    finally:
-        return cart_data
-        
 
 
 #1) Post cart data from Cart MS to Order MS, delete cart entry
-@app.route("/place_order/<customer_id>", methods=['POST'])
-def sendCartDataToOrderDB(cart_data):
+def sendCartDataToOrderDB(cart_data, auth_key):
+    payload = {
+            "cart_data": cart_data['data'],
+            "auth_key": auth_key
+        }
+    # payload = {'cart_item': cart_data['data'], "auth_key": auth_key}
+
     print('\n---- Sending Cart Data to Order DB ----')
-    send_to_order_db = invoke_http(order_url, method='POST', json=cart_data['data'])
+    send_to_order_db = invoke_http(order_url, method='POST', json=payload)
     return send_to_order_db
 
 #2) Retrieve cart data from Cart MS
 # @app.route("/place_order/cart/<customer_id>", methods=['GET'])
-def retrieveCustomerCart(customer_id):
+def retrieveCustomerCart(auth_key):
     print('\n---- Retrieving Cart ----')
-    order_result = invoke_http(cart_url, method='POST', json={"customer_id": customer_id})
+    order_result = invoke_http(cart_url, method='POST', json={"auth_key": auth_key})
     #order_result = invoke_http(cart_url + '/' + customer_id, method='GET', json={"customer_id": customer_id})
 
     if order_result['code'] == 404 or order_result['code'] == 500:
@@ -72,7 +109,7 @@ def retrieveCustomerCart(customer_id):
         return {
             "code": 404,
             "data": {
-                "customer_id": customer_id,
+                "customer_id": auth_key,
                 "order_result": order_result,
             },
             "message": "Error in retrieving Cart."
@@ -123,18 +160,17 @@ def retrieveCustomerCartandBill(customer_id):
 
 #4) Delete the whole cart 
 @app.route("/place_order/cart/<customer_id>/delete", methods=['DELETE'])
-def deleteCustomerCart(customer_id):
+def deleteCustomerCart(auth_key):
     print('----Invoking Cart Microservice----')
-    order_result = invoke_http(delete_cart_url, method='DELETE', json={"customer_id": customer_id})
+    order_result = invoke_http(delete_cart_url, method='DELETE', json={"auth_key": auth_key})
     if order_result['code'] == 404 or order_result['code'] == 500:
         print('----Error in invoking Cart Microservice----')
         return {
             "code": 404,
             "data": {
-                "customer_id": customer_id
+                "customer_id": auth_key
             },
             "message": "Failed to delete cart."
-
         }
     print('order_result:', order_result)
     return order_result
@@ -259,11 +295,13 @@ def retrieveCustomerOrderandBill(customer_id, order_id):
 
 #12) Send email to Customer via Notification MS
 @app.route("/send-confirmation-email/<customer_id>")
-def sendConfirmationEmail(cart_data):
+def sendConfirmationEmail(cart_data, customer_name, customer_email):
     payload = {
         "routingKey": "success.email",
         "data": {
-            "cart_data": cart_data
+            "cart_data": cart_data,
+            "customer_name": customer_name,
+            "customer_email": customer_email
         }
     }
 

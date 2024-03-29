@@ -1,43 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName, updateTotalPrice}) {
+export function Dropdown({
+  component,
+  partInfo,
+  setSelectedStatusDict,
+  setPcName,
+  updateTotalPrice,
+}) {
+  const [auth_key, setAuth_key] = useState();
+
+  // Retrieve Auth Key from Local storage on mount
+  useEffect(() => {
+    setAuth_key(localStorage.getItem("AUTH_KEY"));
+  }, []);
 
   async function handleSelectChange(event) {
-    const value = event.target.value
-    const selectedArray = value.split(",")
-    const component = selectedArray[0]
-    const partId = selectedArray[1]
+    const value = event.target.value;
+    const selectedArray = value.split(",");
+    const component = selectedArray[0];
+    const partId = selectedArray[1];
 
-    if(partId) {
+    if (partId) {
       // update selectedStatusDict, where selectedStatusDict[component] = true
-      setSelectedStatusDict(prevState => ({
+      setSelectedStatusDict((prevState) => ({
         ...prevState,
-        [component]: true
+        [component]: true,
       }));
-    }
-    else {
+    } else {
       // update selectedStatusDict, where selectedStatusDict[component] = false
-      setSelectedStatusDict(prevState => ({
+      setSelectedStatusDict((prevState) => ({
         ...prevState,
-        [component]: false
-      }))
-      setPcName('');
+        [component]: false,
+      }));
+      setPcName("");
     }
 
     const response = await fetch("http://localhost:5005/addPart", {
       method: "POST",
-      credentials: 'include', 
+      credentials: "include",
       headers: {
-        'Content-Type': 'application/json'
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        userId: "112",
-        part_id: partId
+        auth_key: auth_key,
+        part_id: partId,
       }),
     });
+
+    console.log(response);
     updateTotalPrice();
-
-
   }
 
   return (
@@ -49,7 +60,7 @@ export function Dropdown({ component, partInfo, setSelectedStatusDict, setPcName
         onChange={handleSelectChange}
       >
         <option value={[component, ""]}>Please Select a {component}</option>
-        {partInfo[component].map((item) => {  
+        {partInfo[component].map((item) => {
           return (
             <option key={item["part_id"]} value={[component, item["part_id"]]}>
               {item["part_name"]} (${item["part_price"]})

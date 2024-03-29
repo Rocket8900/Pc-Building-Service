@@ -2,15 +2,30 @@ from flask import Flask, session, request, jsonify
 from flask_cors import CORS
 from uuid import uuid4
 import requests
+import jwt
+import os
+from dotenv import load_dotenv
 
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY', "SantaClause123")
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["http://localhost:5173"])
 app.secret_key = 'your_secret_key_here'
 app.config['SESSION_COOKIE_SECURE'] = False
 
-
 PARTS_SERVICE_URL = 'http://host.docker.internal:5950/part'
+
+# For Decoding the JWT Token
+def decode_user(token):
+    """
+    :param token: jwt token
+    :return:
+    """
+    decoded_data = jwt.decode(jwt=token,
+                              key=SECRET_KEY,
+                              algorithms=["HS256"])
+    return decoded_data
+
 
 def fetch_part_details(part_id):
     try:
@@ -31,12 +46,26 @@ def fetch_part_details(part_id):
         print(f"An error occurred: {err}")
     return None
 
+# This runs first when the User clicks "Begin Building"
 @app.route('/createPc', methods=['POST'])
 def create_pc():
-    data = request.json
-    userId = data.get('userId')
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
+    # Checking if User ID is decoded
     if not userId:
         return jsonify({"error": "UserId is required"}), 400
+    
     session[userId] = {"pc_name": "", "parts": [], "price": 0}
     session.modified = True
     print(userId)
@@ -45,12 +74,24 @@ def create_pc():
 
 @app.route('/editPcName', methods=['PUT'])
 def edit_pc_name():
-    data = request.json
-    userId = data.get('userId')
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
+    # Checking if User ID is decoded
     if not userId:
         return jsonify({"error": "UserId is required"}), 400
     if userId in session:
-        session[userId]["pc_name"] = data.get("pc_name", "")
+        session[userId]["pc_name"] = request.json.get("pc_name", "")
         session.modified = True
         return jsonify(session[userId]), 200
     else:
@@ -59,9 +100,18 @@ def edit_pc_name():
 @app.route('/addPart', methods=['POST'])
 def add_part():
     # Retrieve data from POST request 
-    data = request.json
-    part_id = data.get('part_id')
-    userId = data.get('userId')
+    part_id = request.json.get('part_id')
+    auth_key_received = request.json.get('auth_key')
+
+        # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
 
     print(userId)
     print(session)
@@ -107,17 +157,39 @@ def add_part():
 
 @app.route('/getAllPartsWithPrice', methods=['POST'])
 def get_all_parts_w():
-    data = request.json
-    userId = data.get('userId')
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
+    # Checking if User ID is decoded
     if userId in session:
         return jsonify(session[userId]["parts"]), 200
     else:
         return jsonify({"error": "User not found"}), 404
     
+# Alex changed
 @app.route('/getAllPartsWithoutPrice', methods=['POST'])
 def get_all_parts_wo():
-    data = request.json
-    userId = data.get('userId')
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
     if userId in session:
         parts = session[userId]["parts"]
         parts_without_category_and_price = [{"part_id": part["part_id"]} for part in parts]
@@ -126,11 +198,21 @@ def get_all_parts_wo():
     else:
         return jsonify({"error": "User not found"}), 404
     
-
 @app.route('/deleteAllParts', methods=['DELETE'])
 def delete_all_parts():
-    data = request.json
-    userId = data.get('userId')
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
     if userId in session:
         session[userId]["parts"] = []  
         session[userId]["price"]=0
@@ -142,8 +224,20 @@ def delete_all_parts():
 @app.route('/getEntireCartWithoutPrice', methods=['POST'])
 def get_cart_wo():
     cart_items = {}
-    data = request.json
-    userId = data.get('userId')
+
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
     customer_id = userId
     if userId in session:
         cart_items["pc_name"]=session[userId]["pc_name"]
@@ -163,8 +257,20 @@ def get_cart_wo():
 @app.route('/getEntireCartWithPrice', methods=['POST'])
 def get_cart_w():
     cart_items = {}
-    data = request.json
-    userId = data.get('userId')
+
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the userId from Auth Key
+    userId = auth_key['user_id']['user_id']
+
     customer_id = userId
     if userId in session:
         cart_items["pc_name"]=session[userId]["pc_name"]
@@ -181,7 +287,8 @@ def get_cart_w():
             "customer_id": customer_id,
             "cart_item": cart_items
         }
-    return jsonify(cart), 200
+        return jsonify(cart), 200
+    return jsonify({"error": "error"}), 404
 
 @app.route('/clearSession')
 def clear_session():

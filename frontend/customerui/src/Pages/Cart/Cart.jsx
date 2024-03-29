@@ -4,11 +4,10 @@ import { debounce } from "lodash";
 
 export function Cart() {
   const navigate = useNavigate();
-
   const [cartItems, setCartItems] = useState([]);
   const [cartTotal, setCartTotal] = useState(undefined);
   const [partDetails, setPartDetails] = useState(undefined);
-  const customerID = 112;
+  const auth_key = localStorage.getItem("AUTH_KEY");
 
   // Get Cart Data & Total bill on mount
   useEffect(() => {
@@ -20,7 +19,8 @@ export function Cart() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ customer_id: customerID }),
+          // body: JSON.stringify({ customer_id: customerID }),
+          body: JSON.stringify({ auth_key: auth_key }),
         });
 
         // If Response is ok, then update the cartItem state
@@ -68,7 +68,7 @@ export function Cart() {
   function deleteItemFromDb(item_id) {
     // Debounce to limit the frequency of calls
     const debouncedUpdateCartDB = debounce(async () => {
-      const payload = { customer_id: customerID, item_id: item_id };
+      const payload = { auth_key: auth_key, item_id: item_id };
 
       try {
         const response = await fetch(`http://localhost:5002/delete-item`, {
@@ -91,7 +91,7 @@ export function Cart() {
   // _______ Direct to checkout page & pass the data to next page _______
   function directToCheckout() {
     navigate("/checkout", {
-      state: { cartItems, cartTotal, partDetails, customerID },
+      state: { cartItems, cartTotal, partDetails, auth_key },
     });
   }
 
@@ -118,7 +118,7 @@ export function Cart() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ customer_id: customerID }),
+        body: JSON.stringify({ auth_key: auth_key }),
       });
       // Refresh the page after clearing cart
       if (response.status === 200) window.location.reload();
