@@ -200,7 +200,7 @@ services:
   routes:
   - https_redirect_status_code: 426
     methods:
-    - POST
+    - DELETE
     - OPTIONS
     name: delete-cart
     path_handling: v0
@@ -394,6 +394,33 @@ services:
     path_handling: v0
     paths:
     - /retrieve-cart
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: handling-order-cms
+  name: retrieve-cart-and-parts
+  path: /retrieve-cart-and-parts
+  port: 5100
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: retrieve-cart-and-parts
+    path_handling: v0
+    paths:
+    - /retrieve-cart-and-parts
     preserve_host: false
     protocols:
     - http

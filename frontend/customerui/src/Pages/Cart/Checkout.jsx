@@ -28,14 +28,14 @@ export function Checkout() {
     if (location.state == undefined) navigate("/cart");
 
     setCartItems(location.state.cartItems); // Retrieve cart from previous Cart Page
-    setCartTotal(location.state.cartTotal); // Retrieve cart total from previous Cart Page
+    setCartTotal(location.state.cartTotal.toFixed(2)); // Retrieve cart total from previous Cart Page
+    setTotal(location.state.cartTotal.toFixed(2));
     setPartDetails(location.state.partDetails); // Retrieve cart from previous Cart Page
     setAuth_key(location.state.auth_key); // Retrieve Customer ID from previous Cart Page
   }, [location.state, navigate]);
 
   // ______ STRIPE STUFF ______
   // To Fetch the Publishable key from Server (Stripe)
-  // http://localhost:3400/api/v1/config
   useEffect(() => {
     // http://localhost:3400/fetch-publishable-key (Kong)
     fetch("http://localhost:8000/fetch-publishable-key").then(async (r) => {
@@ -44,19 +44,13 @@ export function Checkout() {
     });
   }, []);
 
-  useEffect(() => {
-    if (cartTotal != undefined) {
-      Object.entries(cartTotal).forEach(([item_id, price]) => {
-        setTotal((prev) => prev + parseFloat(price));
-      });
-    }
-  }, [cartTotal]);
-
-  useEffect(() => {
-    if (total != 0) {
-      directToStripePayment();
-    }
-  }, [total]);
+  // useEffect(() => {
+  //   if (cartTotal != undefined) {
+  //     // Object.entries(cartTotal).forEach(([item_id, price]) => {
+  //     //   setTotal((prev) => prev + parseFloat(price));
+  //     // });
+  //   }
+  // }, [cartTotal]);
 
   async function directToStripePayment() {
     const clientSecret = await fetch(
@@ -67,7 +61,7 @@ export function Checkout() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ total: total }),
+        body: JSON.stringify({ total: cartTotal }),
       }
     );
     setClientSecret(await clientSecret.json()); // To initialize the Stripe element
@@ -85,7 +79,11 @@ export function Checkout() {
     navigate("/cart");
   }
 
-  console.log(cartTotal);
+  useEffect(() => {
+    if (cartTotal != 0 && stripePromise) {
+      directToStripePayment();
+    }
+  }, [cartTotal, stripePromise]);
 
   return (
     <>
@@ -164,9 +162,7 @@ export function Checkout() {
                               className="font-bold text-right-total text-lg px-6 py-2 whitespace-nowrap"
                             >
                               Total: $
-                              {cartTotal
-                                ? formatter.format(cartTotal[item.item_id])
-                                : ""}
+                              {cartTotal ? formatter.format(cartTotal) : ""}
                             </td>
                           </tr>
                         </tbody>

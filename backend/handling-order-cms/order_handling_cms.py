@@ -20,6 +20,7 @@ parts_url = 'http://host.docker.internal:5950/part'
 amqp_url = "http://host.docker.internal:3200/api/data"
 delete_cart_url = "http://host.docker.internal:5002/delete-cart"
 
+
 def decode_user(token: str):
     """
     :param token: jwt token
@@ -31,8 +32,39 @@ def decode_user(token: str):
 
     return decoded_data
 
+# Retrieve Cart Details
+@app.route("/retrieve-cart-and-parts", methods=['POST'])
+def retrieveCart():
 
-# Start
+    # Get today's date
+    today = datetime.today()
+
+    # Format today's date as a string in the desired format
+    formatted_date = today.strftime("%d %B %Y")
+
+    # Cart Holder
+    cartItems = []
+    partDetailList = {}
+    cartTotal = 0
+
+    # Retrieving customer_id from POST request
+    auth_key = request.json.get('auth_key', None)
+
+    # Retrieving Cart with Auth Key
+    cart_response = invoke_http(cart_url, method='POST', json={"auth_key": auth_key})
+
+    if (cart_response['code'] == 200):
+        cartItems = cart_response['data']['cart_item']
+        
+        for item in cartItems:
+            for part in item['parts']:
+                part_response = invoke_http(parts_url, method='POST', json={"part_id": part['parts_id']})
+                partDetailList[part['parts_id']] = part_response
+                cartTotal += part_response['part_price']
+
+        return {"cartItems": cartItems, "partDetailList": partDetailList, "cartTotal": cartTotal}
+
+# Start of payment processing
 @app.route("/post-payment-processing", methods=['POST'])
 def postPaymentProcessing():
     try:
@@ -48,8 +80,14 @@ def postPaymentProcessing():
 
         # Retrieving the customerID from Auth Key
         customer_id = auth_key['user_id']['user_id']
+
+        # Retrieve customer name
         orig_name = auth_key['user_id']['name']
-        customer_name = orig_name.replace(' _', '')
+
+        # Remove the ' _' from name
+        customer_name = orig_name.replace(' _', '') 
+
+        # Retrieve customer email
         customer_email = auth_key['user_id']['email']
 
         # Get today's date

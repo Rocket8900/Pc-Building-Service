@@ -25,5 +25,5 @@ func main() {
 	server.POST("/repair/updaterepairprice", controllers.UpdateRepairPrice)
 	server.POST("/repair/updaterepairemployee", controllers.UpdateRepairEmployee)
 
-	server.Run(":8888")
+	server.Run(":4200")
 }
