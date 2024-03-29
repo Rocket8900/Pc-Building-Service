@@ -9,12 +9,13 @@ import datetime
 load_dotenv()
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
+# CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
+CORS(app)
 
 app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'default_secret_key') 
 client_id = "103401913594-aq4cvr1j7uipabj86vjc4nnv4p418sh6.apps.googleusercontent.com"
 client_secret = os.environ.get('GOOGLE_CLIENT_SECRET')  
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'your_jwt_secret')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 redirect_uri = "http://localhost:5015/login/google"
 
 def generate_jwt(user_id,user_role):

@@ -1,7 +1,6 @@
-FROM python:3.9-slim
+FROM python:3.9.13
 WORKDIR /usr/src/app
 COPY requirements.txt ./
 RUN python -m pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 5100
-CMD [ "python3", "./order_handling_cms.py" ]
+COPY ./recommendation.py .
+CMD [ "python", "./recommendation.py" ]

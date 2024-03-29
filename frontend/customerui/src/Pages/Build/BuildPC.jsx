@@ -39,7 +39,8 @@ export function BuildPC() {
 
   const updateTotalPrice = async () => {
     const response = await fetch(
-      "http://localhost:5005/getEntireCartWithPrice",
+      // http://localhost:5005/getEntireCartWithPrice
+      "http://localhost:8000/getEntireCartWithPrice",
       {
         method: "POST",
         headers: {
@@ -64,7 +65,8 @@ export function BuildPC() {
 
   const handleAddToCart = async () => {
     const response = await fetch(
-      "http://localhost:5005/getEntireCartWithoutPrice",
+      // http://localhost:5005/getEntireCartWithoutPrice
+      "http://localhost:8000/getEntireCartWithoutPrice",
       {
         method: "POST",
         headers: {
@@ -87,7 +89,9 @@ export function BuildPC() {
 
       console.log(cartData);
 
-      const cartResponse = await fetch("http://localhost:5002/cart", {
+      // Create cart
+      // http://localhost:5002/cart
+      const cartResponse = await fetch("http://localhost:8000/cart", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -122,7 +126,8 @@ export function BuildPC() {
   // function to startBuilding
   async function clickStartBuild() {
     setStartBuild(true);
-    const response = await fetch("http://localhost:5005/createPc", {
+    // http://localhost:5005/createPc
+    const response = await fetch("http://localhost:8000/createPc", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -138,7 +143,8 @@ export function BuildPC() {
   useEffect(() => {
     // fetch categories
     async function fetchCategories() {
-      const response = await fetch("http://localhost:5950/categories", {
+      // http://localhost:5950/categories
+      const response = await fetch("http://localhost:8000/categories", {
         method: "POST",
       });
       const resData = await response.json();
@@ -146,7 +152,8 @@ export function BuildPC() {
     }
     // fetch parts
     async function fetchParts() {
-      const response = await fetch("http://localhost:5950/all-parts", {
+      // http://localhost:5950/all-parts
+      const response = await fetch("http://localhost:8000/all-parts", {
         method: "POST",
       });
       const resData = await response.json();

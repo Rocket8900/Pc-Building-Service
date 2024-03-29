@@ -16,7 +16,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 def decode_user(token: str):
     """

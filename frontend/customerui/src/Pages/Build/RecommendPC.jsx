@@ -49,11 +49,12 @@ export function RecommendPC() {
   }, []);
 
   function retrieveRecommendedProducts(auth_key_retrieved) {
+    console.log(auth_key_retrieved);
     const fetchRecommendedProducts = async () => {
       try {
         const response = await fetch(
-          // `http://localhost:5800/retrieve-recommended-products`
-          `http://localhost:5001/retrieve-recommended-products`,
+          // http://localhost:5001/retrieve-recommended-products
+          `http://localhost:5800/retrieve-recommended-products`,
           {
             method: "POST",
             headers: {
@@ -81,6 +82,7 @@ export function RecommendPC() {
         pc_name: pcName,
       };
 
+      // http://localhost:5002/cart
       const cartResponse = await fetch("http://localhost:5002/cart", {
         method: "POST",
         headers: {
