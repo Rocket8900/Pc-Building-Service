@@ -10,7 +10,7 @@ export const RepairPopup = ({ isOpen, onClose, orderID }) => {
     const sendRepairData = async (orderID) => {
       const response = await fetch(
         // http://localhost:4200/createrepair
-        "http://localhost:4200/createrepair",
+        "http://localhost:8000/createrepair",
         {
           method: "POST",
           headers: {

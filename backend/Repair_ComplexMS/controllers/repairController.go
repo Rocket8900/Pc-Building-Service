@@ -37,6 +37,132 @@ func verifyToken(tokenString string, secretKey []byte) (jwt.MapClaims, error) {
 }
 
 func CreateRepair(context *gin.Context) {
+	var requestBody struct {
+		Description string `json:"Description"`
+		OrderID     string `json:"OrderID" binding:"required"`
+		Status      string `json:"Status" binding:"required"`
+	}
+
+	// Bind the request body to the struct
+	if err := context.BindJSON(&requestBody); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+	log.Println("here is my request body")
+	log.Println(context.BindJSON(&requestBody))
+	// Check if the Repair ID and status are provided
+	if requestBody.OrderID == "" || requestBody.Status == "" {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Repair ID and status are required"})
+		return
+	}
+
+	authHeader := context.GetHeader("Authorization")
+
+	if len(authHeader) < 7 {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid authorization header"})
+		return
+	}
+	tokenString := authHeader[7:]
+	claims, err := verifyToken(tokenString, secretKey)
+	if err != nil {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	userMap, ok := claims["user_id"].(map[string]interface{})
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID claim is not a map"})
+		return
+	}
+
+	userIDRaw, ok := userMap["user_id"]
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID not found within nested map"})
+		return
+	}
+
+	UserID, ok := userIDRaw.(string)
+	if !ok {
+		context.JSON(http.StatusUnauthorized, gin.H{"error": "User ID is not a string"})
+		return
+	}
+
+	// Define the data to be sent to repair simple
+	requestData := map[string]string{
+		"UserID":      UserID,
+		"Status":      requestBody.Status,
+		"Description": requestBody.Description,
+		"OrderID":     requestBody.OrderID,
+	}
+
+	// Define the data to be sent to email ms
+	requestEmailData := map[string]interface{}{
+		"routingKey": "*.email",
+		"data": map[string]interface{}{
+			"type":    "repairemail",
+			"purpose": "createRepair",
+			"OrderID": requestBody.OrderID,
+			"status":  requestBody.Status,
+		},
+	}
+
+	// Define the data to be sent to log ms
+	requestLogData := map[string]interface{}{
+		"routingKey": "*.log",
+		"data": map[string]interface{}{
+			"purpose": "createRepair",
+			"OrderID": requestBody.OrderID,
+			"status":  requestBody.Status,
+		},
+	}
+
+	// Convert requestData to JSON
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	jsonEmailData, errs := json.Marshal(requestEmailData)
+	if errs != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	jsonLogData, errs := json.Marshal(requestLogData)
+	if errs != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to marshal JSON"})
+		return
+	}
+
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Send an email regarding the order having a status update
+	_, err = client.Post("http://localhost:3200/api/data", "application/json", bytes.NewBuffer(jsonEmailData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Send a post to simple repair ms to update the repair status
+	_, err = client.Post("http://host.docker.internal:4100/repair/createrepair", "application/json", bytes.NewBuffer(jsonData))
+	log.Println("here is the jsondata")
+	log.Println(jsonData)
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Send to logs regarding the order having a status update
+	_, err = client.Post("http://localhost:3200/api/data", "application/json", bytes.NewBuffer(jsonLogData))
+	if err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
+		return
+	}
+
+	// Return success response
+	context.JSON(http.StatusOK, gin.H{"message": "Repair status updated successfully"})
 	// var r models.Repair
 	// if err := context.ShouldBindJSON(&r); err != nil {
 	// 	fmt.Printf("binding json to repair: %v\n", err)
@@ -130,7 +256,7 @@ func UpdateRepairStatus(context *gin.Context) {
 	}
 
 	// Send a post to simple repair ms to update the repair status
-	_, err = client.Post("http://localhost:8080/repair/updaterepairstatus", "application/json", bytes.NewBuffer(jsonData))
+	_, err = client.Post("http://host.docker.internal:4100/repair/updaterepairstatus", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
 		return
@@ -264,7 +390,7 @@ func UpdateRepairEmployee(context *gin.Context) {
 	}
 
 	// Send a post to simple repair ms to update the repair status
-	_, err = client.Post("http://localhost:8080/repair/updaterepairemployee", "application/json", bytes.NewBuffer(jsonData))
+	_, err = client.Post("http://host.docker.internal:4100/repair/updaterepairemployee", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
 		return
@@ -357,7 +483,7 @@ func UpdateRepairPart(context *gin.Context) {
 	}
 
 	// Send a post to simple repair ms to update the repair status
-	_, err = client.Post("http://localhost:8080/repair/updaterepairpart", "application/json", bytes.NewBuffer(jsonData))
+	_, err = client.Post("http://host.docker.internal:4100/repair/updaterepairpart", "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send request to Service B"})
 		return

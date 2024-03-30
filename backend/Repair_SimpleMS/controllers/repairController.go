@@ -36,6 +36,7 @@ func verifyToken(tokenString string, secretKey []byte) (jwt.MapClaims, error) {
 }
 
 func CreateRepair(context *gin.Context) {
+	log.Println("i am getting called by complex repair")
 	var r models.Repair
 	if err := context.ShouldBindJSON(&r); err != nil {
 		fmt.Printf("binding json to repair: %v\n", err)

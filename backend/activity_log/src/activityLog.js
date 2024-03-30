@@ -43,7 +43,7 @@ async function consumingActivity() {
   try {
     // Connecting to the RabbitMQ
     // RABBITMQ_URL="amqp://localhost:15672”
-    const connection = await amqp.connect("amqp://localhost:5672");
+    const connection = await amqp.connect("amqp://host.docker.internal:5672");
 
     // Creating a Channel
     const channel = await connection.createChannel();
