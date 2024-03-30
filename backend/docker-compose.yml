@@ -300,7 +300,7 @@ services:
     networks:
       - kong-net
     env_file:
-      - .env
+      - ./parts_simple/.env
     restart: always
 
   ####################################################
