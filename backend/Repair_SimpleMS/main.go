@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"repair/models"
 
 	"repair/controllers"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	dsn := "admin:repairdb@tcp(repairdb.cysugzh9c3nf.ap-southeast-2.rds.amazonaws.com:3306)/repairdb?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := os.Getenv("DB_URL")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")

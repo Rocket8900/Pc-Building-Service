@@ -110,7 +110,7 @@ services:
     ports:
       - "4100:4100"
     env_file:
-      - .env
+      - ./Repair_SimpleMS/.env
     restart: always
     networks:
       - kong-net
@@ -127,7 +127,7 @@ services:
     ports:
       - "4200:4200"
     env_file:
-      - .env
+      - ./Repair_ComplexMS/controllers/.env
     restart: always
     networks:
       - kong-net
@@ -203,7 +203,7 @@ services:
     ports:
       - "5010:5010"
     env_file:
-      - .env
+      - ./UserAccount_SimpleMS/.env
     networks:
       - kong-net
     restart: always
@@ -222,7 +222,7 @@ services:
     networks:
       - kong-net
     env_file:
-      - .env
+      - ./UserAccount_ComplexMS/.env
     restart: always
 
   ####################################################
@@ -251,21 +251,21 @@ services:
   ####################################################
   # Recommendation MS
   ####################################################
-  # recommendation-ms:
-  #   build:
-  #     context: ./recommendation
-  #     dockerfile: Dockerfile
-  #   image: recommendation-ms
-  #   container_name: recommendation-ms
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   ports:
-  #     - "5800:5800"
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - kong-net
-  #   restart: always
+  recommendation-ms:
+    build:
+      context: ./recommendation
+      dockerfile: Dockerfile
+    image: recommendation-ms
+    container_name: recommendation-ms
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "5800:5800"
+    env_file:
+      - .env
+    networks:
+      - kong-net
+    restart: always
 
   ####################################################
   # Notification MS
