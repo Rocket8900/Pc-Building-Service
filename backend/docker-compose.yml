@@ -167,7 +167,7 @@ services:
     ports:
       - "5002:5002"
     env_file:
-      - .env
+      - ./cart/.env
     networks:
       - kong-net
     restart: always
