@@ -11,8 +11,8 @@ export function Orders() {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          // http://localhost:8000/retrieve-customer-order (Kong)
-          `http://localhost:5001/retrieve-customer-order`,
+          // http://localhost:5001/retrieve-customer-order (Kong)
+          `http://localhost:8000/retrieve-customer-order`,
           {
             method: "POST",
             headers: {
@@ -36,8 +36,8 @@ export function Orders() {
 
   console.log(orders);
 
-  function redirectToItemDetail(order_id) {
-    navigate(`/order-details?orderID=${order_id}`);
+  function redirectToItemDetail({ order_id, auth_key, date }) {
+    navigate(`/order-details?orderID=${order_id}&date=${date}`);
   }
 
   // _______ Formatter _______
@@ -94,7 +94,11 @@ export function Orders() {
                             <a
                               href="#"
                               onClick={() =>
-                                redirectToItemDetail(order.order_id)
+                                redirectToItemDetail({
+                                  order_id: order.order_id,
+                                  auth_key: auth_key,
+                                  date: order.date,
+                                })
                               }
                               className="text-sm text-blue-700 hover:text-orange-700 hover:underline"
                             >

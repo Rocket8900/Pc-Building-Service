@@ -9,19 +9,24 @@ export const RepairPopup = ({ isOpen, onClose, orderID }) => {
     // Send to Repair DB here
     const sendRepairData = async (orderID) => {
       const response = await fetch(
-        "http://localhost:8080/create-repair-order",
+        // http://localhost:4200/createrepair
+        "http://localhost:4200/createrepair",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ order_id: orderID, repair_desc: repairTb }),
+          body: JSON.stringify({
+            OrderID: orderID,
+            Status: "processing",
+            Description: repairTb,
+          }),
         }
       );
     };
 
     // Close the popup
-    // sendRepairData();
+    sendRepairData();
     onClose();
   }
 
