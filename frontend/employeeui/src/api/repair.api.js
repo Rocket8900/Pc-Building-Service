@@ -1,9 +1,9 @@
 import axios from "axios"
 
-const REPAIR_BASE_URL = "http://localhost:8080/repair"
+const REPAIR_BASE_URL = "http://localhost:8000/repair"
 
 const instance = axios.create({
-  baseURL: "http://localhost:8080/repair"
+  baseURL: "http://localhost:8000/repair"
 })
 
 instance.interceptors.request.use(
@@ -54,8 +54,8 @@ export const getEmployeeRepairsAPI = async () => {
   });
 }
 
-export const updateRepairStatus = async (id, updatedStatus) => {
-  return axios.post(`http://localhost:8888/repair/updaterepairstatus`, {
+export const updateRepairCompletion = async (id, updatedStatus) => {
+  return axios.post(`http://localhost:8000/repair/updaterepaircompletion`, {
     RepairID: id,
     Status: updatedStatus
   })
@@ -67,21 +67,21 @@ export const updateRepairStatus = async (id, updatedStatus) => {
   });
 }
 
-export const updateRepairStatusSimple = async (id, status) => {
-  return axios.post(`${REPAIR_BASE_URL}/updaterepairstatus`, {
-    RepairID: id,
-    Status: status
-  })
-  .then(response => {
-    return response.data; 
-  })
-  .catch(error => {
-    console.error("Error fetching repairs:", error);
-  });
-}
+// export const updateRepairStatusSimple = async (id, status) => {
+//   return axios.post(`${REPAIR_BASE_URL}/updaterepairstatussimple`, {
+//     RepairID: id,
+//     Status: status
+//   })
+//   .then(response => {
+//     return response.data; 
+//   })
+//   .catch(error => {
+//     console.error("Error fetching repairs:", error);
+//   });
+// }
 
 export const updateRepairEmployee = async (id) => {
-  return instance.post(`http://localhost:8888/repair/updaterepairemployee`, {
+  return instance.post(`http://localhost:8000/repair/updaterepairemployee`, {
     RepairID: id,
   })
   .then(response => {
@@ -93,7 +93,7 @@ export const updateRepairEmployee = async (id) => {
 }
 
 export const updateRepairPart = async (id, part) => {
-  return instance.post(`http://localhost:8888/repair/updaterepairpart`, {
+  return instance.post(`http://localhost:8000/repair/updaterepairpart`, {
     RepairID: id,
     RepairPart: part,
   })

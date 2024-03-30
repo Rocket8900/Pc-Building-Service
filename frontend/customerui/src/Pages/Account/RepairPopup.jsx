@@ -4,29 +4,35 @@ import { useState } from "react";
 export const RepairPopup = ({ isOpen, onClose, orderID }) => {
   const [repairTb, setRepairTb] = useState("");
   if (!isOpen) return null; // If popup is not visible, return null
+  const token = localStorage.getItem('AUTH_KEY');
 
+  if (!token) {
+      console.error('Token not found in local storage');
+      return;
+  }
   function sendForRepair() {
     // Send to Repair DB here
     const sendRepairData = async (orderID) => {
       const response = await fetch(
         // http://localhost:4200/createrepair
-        "http://localhost:8000/createrepair",
+        "http://localhost:8000/repair/createrepair",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
           },
           body: JSON.stringify({
-            OrderID: orderID,
-            Status: "processing",
-            Description: repairTb,
+              "OrderID": orderID,
+              "Status": "Processing",
+              "Description": repairTb
           }),
         }
       );
     };
 
     // Close the popup
-    sendRepairData();
+    sendRepairData(orderID);
     onClose();
   }
 

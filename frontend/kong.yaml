@@ -16,7 +16,7 @@ plugins:
     - TRACE
     - CONNECT
     origins:
-    - http://localhost:5173
+    - "*"
     preflight_continue: false
   enabled: true
   name: cors

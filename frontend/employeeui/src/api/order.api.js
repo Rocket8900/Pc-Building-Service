@@ -1,11 +1,11 @@
 import axios from "axios"
 
-const ORDER_BASE_URL = "http://localhost:5009"
+const ORDER_BASE_URL = "http://localhost:8000"
 
 
 export const getOrderByIdAPI = async (id) => {
     return axios.post(`${ORDER_BASE_URL}/retrieve-order-detail`, {
-        orderID: "2"
+        orderID: id
     })
     .then(response => {
       return response.data; 

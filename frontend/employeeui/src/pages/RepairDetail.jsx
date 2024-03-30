@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import {getRepairByIdAPI, updateRepairStatus, updateRepairEmployee, updateRepairStatusSimple} from '../api/repair.api'
+import {getRepairByIdAPI, updateRepairCompletion, updateRepairEmployee} from '../api/repair.api'
 import Layout from '../layout/Layout';
 import IdentifyPartModal from '../components/repairs/IdentifyPartModal';
 
@@ -27,7 +27,7 @@ function RepairDetail() {
     
       const handleStatusUpdate = async () => {
         try {
-            await updateRepairStatus(RepairID, 'Repair Completed'); 
+            await updateRepairCompletion(RepairID, 'Repair Completed'); 
             const updatedRepairDetails = await getRepairByIdAPI(RepairID);
             setRepairDetails(updatedRepairDetails[0]);
         } catch (error) {
@@ -48,7 +48,7 @@ function RepairDetail() {
     const handleEmployeeUpdate = async () => {
       try {
           await updateRepairEmployee(RepairID, EmployeeID); 
-          await updateRepairStatusSimple(RepairID, "Employee Assigned")
+          // await updateRepairStatusSimple(RepairID, "Employee Assigned")
           const updatedRepairDetails = await getRepairByIdAPI(RepairID);
           setRepairDetails(updatedRepairDetails[0]);
       } catch (error) {
