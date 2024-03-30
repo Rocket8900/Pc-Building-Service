@@ -10,13 +10,14 @@ export function OrderDetails() {
   let itemTotalRef = useRef(0);
   const searchParams = new URLSearchParams(window.location.search);
   const orderID = searchParams.get("orderID") || undefined;
+  const date = searchParams.get("date") || undefined;
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const response = await fetch(
-          // http://localhost:8000/retrieve-order-detail (Kong)
-          `http://localhost:5001/retrieve-order-detail`,
+          // http://localhost:5001/retrieve-order-detail (Kong)
+          `http://localhost:8000/retrieve-order-detail`,
           {
             method: "POST",
             headers: {
@@ -45,6 +46,7 @@ export function OrderDetails() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+
   return (
     <>
       <div className="flex flex-col items-center min-h-screen bg-gray-100">

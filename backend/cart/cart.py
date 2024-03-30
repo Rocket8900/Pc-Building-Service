@@ -1,22 +1,46 @@
 import os
 import logging
+import jwt
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from os import environ
 from sqlalchemy.orm import relationship
 from flask_cors import CORS
+from dotenv import load_dotenv
 
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 from datetime import datetime
 
 app = Flask(__name__)
+# CORS(app, resources={r"/cart": {"origins": "http://localhost:5173"}})
 CORS(app)
+# CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
 #'mysql+mysqlconnector://root:root@localhost:8889/cart'
-app.config['SQLALCHEMY_DATABASE_URI'] = environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:secure_password@db:3306/cart'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 
 db = SQLAlchemy(app)
+
+def decode_user(token: str):
+    """
+    :param token: jwt token
+    :return:
+    """
+    decoded_data = jwt.decode(jwt=token,
+                              key=SECRET_KEY,
+                              algorithms=["HS256"])
+
+    return decoded_data
+
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
+
 
 class Cart(db.Model):
     __tablename__ = 'cart'
@@ -81,9 +105,18 @@ class Parts_Item(db.Model):
 #Get cart item of user
 @app.route("/retrieve-cart", methods=["POST"])
 def get_cart_item():
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
 
-    # Retrieve the body for Customer ID
-    customer_id = request.json.get('customer_id', None) 
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
 
     cart = db.session.scalars(
         db.select(Cart).filter_by(customer_id=customer_id).limit(1)).first()
@@ -126,12 +159,21 @@ def get_cart_item():
 #Create cart item
 @app.route("/cart", methods=['POST'])
 def create_cart():
-    customer_id = request.json.get('customer_id', None)
-    existing_cart = Cart.query.filter_by(customer_id=customer_id).first()
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
 
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
+
+    existing_cart = Cart.query.filter_by(customer_id=customer_id).first()
     if existing_cart:
-        
-        
         try:
             # Delete associated cart items
             Cart_Item.query.filter_by(cart_id=existing_cart.cart_id).delete()
@@ -148,18 +190,24 @@ def create_cart():
                 }
             ), 500
 
-    
     # If the user does not exist, create a new entry
     cart = Cart(customer_id=customer_id)
-    cart_items = request.json.get('cart_item')
-    for item in cart_items:
-        cart_item = Cart_Item(pc_name=item['pc_name'], cart_id=cart.cart_id)  # Set cart_id here
-        parts = item.get('parts', [])
-        for part in parts:
-            cart_item.parts_item.append(Parts_Item(
-                parts_id=part['parts_id'], quantity=part['quantity']
-            ))
-        cart.cart_item.append(cart_item)
+    # Retrieving cart_item from POST request
+    cart_data = request.json.get('cart_data')
+    cart_item_data = cart_data['cart_item']
+
+    print(cart_item_data)
+
+    # Directly access cart_item properties
+    cart_item = Cart_Item(pc_name=cart_item_data['pc_name'], cart_id=cart.cart_id) # Set cart_id here
+    parts = cart_item_data.get('parts', [])
+    for part in parts:
+        cart_item.parts_item.append(Parts_Item(
+            parts_id=part['part_id'], quantity=part['quantity']
+        ))
+    cart.cart_item.append(cart_item)
+
+    
     try:
         db.session.add(cart)
         db.session.commit()
@@ -208,7 +256,19 @@ def construct_cart_data(cart):
 #Delete a specific item
 @app.route("/delete-item", methods=['POST'])
 def delete_cart_item():
-    customer_id = request.json.get('customer_id', None)
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
+
     item_id = request.json.get('item_id', None)
     # Query the cart for the specified customer ID
     cart = Cart.query.filter_by(customer_id=customer_id).first()
@@ -237,7 +297,19 @@ def delete_cart_item():
 #Delete the whole cart
 @app.route("/delete-cart", methods=['DELETE'])
 def delete_cart():
-    customer_id = request.json.get('customer_id', None)
+
+    # Retrieving customer_id from POST request
+    auth_key_received = request.json.get('auth_key', None)
+
+    # Checking to see if Auth key is received
+    if (auth_key_received is None):
+        return jsonify({"error": "Auth key is missing"}), 400
+
+    # Decoding the Auth key
+    auth_key = decode_user(auth_key_received)
+
+    # Retrieving the customerID from Auth Key
+    customer_id = auth_key['user_id']['user_id']
     
     # Query the cart for the specified customer ID
     cart = Cart.query.filter_by(customer_id=customer_id).first()

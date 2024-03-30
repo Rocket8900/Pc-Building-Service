@@ -5,56 +5,40 @@ import { debounce } from "lodash";
 export function Cart() {
   const navigate = useNavigate();
 
+  // Holds the Cart items ()
   const [cartItems, setCartItems] = useState([]);
+
+  // Holds the Cart total value
   const [cartTotal, setCartTotal] = useState(undefined);
+
+  // Holds the part details
   const [partDetails, setPartDetails] = useState(undefined);
-  const customerID = "Salah";
+  const auth_key = localStorage.getItem("AUTH_KEY");
 
   // Get Cart Data & Total bill on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // http://localhost:8000/retrieve-cart (Kong)
-        const response = await fetch(`http://localhost:5002/retrieve-cart`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ customer_id: customerID }),
-        });
+        // http://localhost:5100/retrieve-cart-and-parts
+        const response = await fetch(
+          `http://localhost:8000/retrieve-cart-and-parts`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            // body: JSON.stringify({ customer_id: customerID }),
+            body: JSON.stringify({ auth_key: auth_key }),
+          }
+        );
 
         // If Response is ok, then update the cartItem state
         if (response.status === 200) {
           const data = await response.json();
-          let cartData = data.data.cart_item;
 
-          setCartItems(cartData);
-
-          const partDetailList = {};
-          const cartTotal = {};
-          // Fetch part details for each part in the cart
-          for (const item of cartData) {
-            let itemTotal = 0;
-            for (const part of item.parts) {
-              const partsResponse = await fetch("http://localhost:5950/part", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ part_id: part.parts_id }),
-              });
-
-              if (partsResponse.status == 200) {
-                const partDetails = await partsResponse.json();
-                itemTotal += partDetails.part_price * partDetails.quantity;
-                partDetailList[part.parts_id] = partDetails;
-              }
-            }
-            cartTotal[item.item_id] = parseFloat(itemTotal.toFixed(2));
-          }
-
-          setPartDetails(partDetailList);
-          setCartTotal(cartTotal);
+          setCartItems(data.cartItems);
+          setPartDetails(data.partDetailList);
+          setCartTotal(data.cartTotal);
         }
       } catch (e) {
         console.error("Error fetching cart: ", e);
@@ -64,11 +48,11 @@ export function Cart() {
     fetchData();
   }, []);
 
-  // _______ Update the Cart DB _______
+  // _______ Update the Cart DB (Deprecated) _______
   function deleteItemFromDb(item_id) {
     // Debounce to limit the frequency of calls
     const debouncedUpdateCartDB = debounce(async () => {
-      const payload = { customer_id: customerID, item_id: item_id };
+      const payload = { auth_key: auth_key, item_id: item_id };
 
       try {
         const response = await fetch(`http://localhost:5002/delete-item`, {
@@ -91,7 +75,7 @@ export function Cart() {
   // _______ Direct to checkout page & pass the data to next page _______
   function directToCheckout() {
     navigate("/checkout", {
-      state: { cartItems, cartTotal, partDetails, customerID },
+      state: { cartItems, cartTotal, partDetails, auth_key },
     });
   }
 
@@ -112,13 +96,13 @@ export function Cart() {
   // _______ Clear Cart _______
   function clearCart() {
     const clearCart = async () => {
-      // http://localhost:8000/delete-cart (Kong)
-      const response = await fetch(`http://localhost:5002/delete-cart`, {
+      // http://localhost:5002/delete-cart (Kong)
+      const response = await fetch(`http://localhost:8000/delete-cart`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ customer_id: customerID }),
+        body: JSON.stringify({ auth_key: auth_key }),
       });
       // Refresh the page after clearing cart
       if (response.status === 200) window.location.reload();
@@ -133,8 +117,6 @@ export function Cart() {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-
-  console.log(cartTotal);
 
   return (
     <>
@@ -244,10 +226,7 @@ export function Cart() {
                           </td>
                           <td className="text-center font-bold text-lg">
                             <div className="flex justify-start mt-3">
-                              $
-                              {cartTotal
-                                ? formatter.format(cartTotal[item.item_id])
-                                : ""}
+                              ${cartTotal ? formatter.format(cartTotal) : ""}
                             </div>
                           </td>
                         </tr>

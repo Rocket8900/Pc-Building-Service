@@ -1,2 +1,5 @@
-
+node_modules
 /venv
+.DS_Store
+parts_simple/parts_env
+esd_venv

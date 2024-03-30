@@ -4,26 +4,26 @@ import { useState, useEffect } from "react";
 export function Orders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const customerID = "Salah";
+  const auth_key = localStorage.getItem("AUTH_KEY");
 
   // Retrieve Orders on Mount
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          // http://localhost:8000/retrieve-customer-order (Kong)
-          `http://localhost:5001/retrieve-customer-order`,
+          // http://localhost:5001/retrieve-customer-order (Kong)
+          `http://localhost:8000/retrieve-customer-order`,
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ customer_id: customerID }),
+            body: JSON.stringify({ auth_key: auth_key }),
           }
         );
-
         if (response.status === 200) {
           const data = await response.json();
+          console.log(data);
           setOrders(data.data);
         }
       } catch (e) {
@@ -36,8 +36,8 @@ export function Orders() {
 
   console.log(orders);
 
-  function redirectToItemDetail(order_id) {
-    navigate(`/order-details?orderID=${order_id}`);
+  function redirectToItemDetail({ order_id, auth_key, date }) {
+    navigate(`/order-details?orderID=${order_id}&date=${date}`);
   }
 
   // _______ Formatter _______
@@ -81,9 +81,6 @@ export function Orders() {
                             Total
                           </th>
                           <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            Deliver to
-                          </th>
-                          <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Details
                           </th>
                         </tr>
@@ -93,12 +90,15 @@ export function Orders() {
                           <td>{order.order_id}</td>
                           <td>{order.date}</td>
                           <td>$ {formatter.format(total)}</td>
-                          <td>{order.customer_id}</td>
                           <td>
                             <a
                               href="#"
                               onClick={() =>
-                                redirectToItemDetail(order.order_id)
+                                redirectToItemDetail({
+                                  order_id: order.order_id,
+                                  auth_key: auth_key,
+                                  date: order.date,
+                                })
                               }
                               className="text-sm text-blue-700 hover:text-orange-700 hover:underline"
                             >

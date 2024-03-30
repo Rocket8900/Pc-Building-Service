@@ -8,6 +8,7 @@ import { Login } from "./Pages/Login";
 
 // ____ BUILD PAGES ____
 import { BuildPC } from "./Pages/Build/BuildPC";
+import { RecommendPC } from "./Pages/Build/RecommendPC";
 
 // ____ REPAIR PAGES ____
 import { RepairPC } from "./Pages/Repair/RepairPC";
@@ -72,6 +73,7 @@ function App() {
         <Route path="/" element={<Home />} />
 
         <Route path="/build-pc" element={<BuildPC />} />
+        <Route path="/recommend-pc" element={<RecommendPC />} />
 
         <Route path="/repair-pc" element={<RepairPC />} />
 
