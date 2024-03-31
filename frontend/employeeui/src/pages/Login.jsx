@@ -29,9 +29,12 @@ function Login() {
         <h2 className="text-2xl font-semibold text-gray-800 mb-6">
           Employee Login
         </h2>
-        <GoogleOAuthProvider clientId={clientId}>
-          <GoogleLogin onSuccess={loginSuccess} />
-        </GoogleOAuthProvider>
+        <div className="mx-auto flex justify-center">
+          <GoogleOAuthProvider clientId={clientId}>
+            <GoogleLogin onSuccess={loginSuccess} />
+          </GoogleOAuthProvider>
+        </div>
+
       </div>
     </div>
   );

@@ -62,7 +62,7 @@ function RepairDetail() {
             {isModalOpen && (
                 <IdentifyPartModal closeModal={closeModal} data={repairDetails} setRepairDetails={setRepairDetails} />
             )}
-          <table className="table-auto w-full">
+          <table className="table-auto w-full mb-6">
             <tbody>
               <tr>
                 <td className='font-bold'>Repair ID</td>
@@ -79,6 +79,10 @@ function RepairDetail() {
               <tr>
                 <td className='font-bold'>Status</td>
                 <td>{repairDetails.Status}</td>
+              </tr>
+              <tr>
+                <td className='font-bold'>Description</td>
+                <td>{repairDetails.Description}</td>
               </tr>
             </tbody>
           </table>

@@ -1,9 +1,16 @@
 import React from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const location = useLocation();
   const { pathname } = location;
+  const navigate = useNavigate();
+
+  const handleSignOut = () => {
+    localStorage.removeItem("AUTH_KEY");
+    navigate("/");
+    
+  };
 
   return (
     <aside className="absolute left-0 top-0 z-50 flex h-screen w-72.5 flex-col overflow-y-hidden transition-all duration-300 ease-linear lg:static lg:translate-x-0 bg-gray-800">
@@ -56,7 +63,7 @@ const Sidebar = () => {
             <ul className="mb-6 flex flex-col">
               <li>
                 <NavLink
-                  to="/signout"
+                  onClick={handleSignOut}
                   className={`group relative flex items-center justify-center py-2 px-4 font-medium text-white hover:bg-gray-700 ${
                     pathname === "/signout" ? "bg-gray-600" : "bg-gray-500"
                   }`}

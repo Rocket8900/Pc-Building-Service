@@ -21,7 +21,7 @@ async function sendRepairStatusMail(message) {
     // Mailing Option
     const mail_options = {
       from: `ESDShop <esdtimez@gmail.com>`,
-      to: "nashwyns.2022@smu.edu.sg",
+      to: "whluk.2022@scis.smu.edu.sg",
       subject: `We found what has been giving you trouble`,
       html: get_html_message(message),
     };
