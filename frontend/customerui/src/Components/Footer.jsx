@@ -14,17 +14,17 @@ export function Footer() {
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-gray-300">
+                <a href="/about-us" className="hover:text-gray-300">
                   About
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-gray-300">
+                <a href="/about-us" className="hover:text-gray-300">
                   Contact
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-gray-300">
+                <a href="/about-us" className="hover:text-gray-300">
                   Privacy
                 </a>
               </li>
