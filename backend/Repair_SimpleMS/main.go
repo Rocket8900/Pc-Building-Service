@@ -43,7 +43,7 @@ func main() {
 
 	server.POST("/repair/updaterepairstatussimple", controllers.UpdateRepairStatusSimple)
 
-	// server.POST("/repair/deleterepair", controllers.DeleteRepair)
+	server.POST("/repair/deleterepairsimple", controllers.DeleteRepairSimple)
 	// server.POST("/repair/updaterepairprice", controllers.UpdateRepairPrice)
 	// server.GET("/repair/getuserrepairs", controllers.GetUserRepairs)
 
