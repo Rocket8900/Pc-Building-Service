@@ -266,31 +266,31 @@ func UpdateRepairEmployeeSimple(context *gin.Context) {
 // 	context.JSON(http.StatusOK, updatedRepair)
 // }
 
-// func DeleteRepair(context *gin.Context) {
-// 	var requestBody struct {
-// 		RepairID string `json:"RepairID" binding:"required"`
-// 	}
+func DeleteRepairSimple(context *gin.Context) {
+	var requestBody struct {
+		RepairID string `json:"RepairID" binding:"required"`
+	}
 
-// 	// Bind the JSON request body to the struct
-// 	if err := context.ShouldBindJSON(&requestBody); err != nil {
-// 		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
-// 		return
-// 	}
+	// Bind the JSON request body to the struct
+	if err := context.ShouldBindJSON(&requestBody); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
 
-// 	// Check if the RepairID is provided
-// 	if requestBody.RepairID == "" {
-// 		context.JSON(http.StatusBadRequest, gin.H{"error": "RepairID is required"})
-// 		return
-// 	}
+	// Check if the RepairID is provided
+	if requestBody.RepairID == "" {
+		context.JSON(http.StatusBadRequest, gin.H{"error": "RepairID is required"})
+		return
+	}
 
-// 	// Delete the repair from the database based on the RepairID
-// 	if err := models.DB.Where("repair_id = ?", requestBody.RepairID).Delete(&models.Repair{}).Error; err != nil {
-// 		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete repair"})
-// 		return
-// 	}
+	// Delete the repair from the database based on the RepairID
+	if err := models.DB.Where("repair_id = ?", requestBody.RepairID).Delete(&models.Repair{}).Error; err != nil {
+		context.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete repair"})
+		return
+	}
 
-// 	context.JSON(http.StatusOK, gin.H{"message": "Repair deleted successfully"})
-// }
+	context.JSON(http.StatusOK, gin.H{"message": "Repair deleted successfully"})
+}
 
 // func GetUserRepairs(context *gin.Context) {
 // 	// Define the request body struct inline

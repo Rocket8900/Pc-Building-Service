@@ -14,6 +14,7 @@ const firebaseConfig = {
   appId: "1:1093698459831:web:76e151390544a0b7bf5532",
 };
 
+
 // Initializing Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
@@ -23,7 +24,7 @@ const app = express();
 const port = 3900;
 
 // For allowing CORS
-app.use(cors({ origin: "http://localhost:5173" }));
+app.use(cors({ origin: "http://localhost:5174" }));
 
 // For Content Security Policy
 // Add CSP middleware to set Content-Security-Policy header

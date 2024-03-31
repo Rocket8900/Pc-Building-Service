@@ -6,12 +6,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 )
 
-var secretKey = []byte("SantaClause123")
+var secretKey = []byte(os.Getenv("SECRET_KEY"))
 
 func verifyToken(tokenString string, secretKey []byte) (jwt.MapClaims, error) {
 

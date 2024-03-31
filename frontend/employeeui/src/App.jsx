@@ -1,15 +1,12 @@
-import React from 'react';
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Repairs from './pages/Repairs'
-import RepairDetail from './pages/RepairDetail';
-import Orders from './pages/Orders';
-import OrderDetail from './pages/OrderDetail';
-import Logs from './pages/Logs';
+import React from "react";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Repairs from "./pages/Repairs";
+import RepairDetail from "./pages/RepairDetail";
+import Orders from "./pages/Orders";
+import OrderDetail from "./pages/OrderDetail";
+import Logs from "./pages/Logs";
 
 const router = createBrowserRouter([
   {
@@ -19,34 +16,34 @@ const router = createBrowserRouter([
   },
   {
     path: "/dashboard",
-    element: <Dashboard/>
+    element: <Dashboard />,
   },
   {
     path: "/repairs",
-    element: <Repairs />
+    element: <Repairs />,
   },
   {
     path: `/repairs/detail`,
-    element: <RepairDetail />
+    element: <RepairDetail />,
   },
   {
     path: `/orders`,
-    element: <Orders />
+    element: <Orders />,
   },
   {
     path: `/orders/detail`,
-    element: <OrderDetail />
-  },  
+    element: <OrderDetail />,
+  },
   {
     path: `/logs`,
-    element: <Logs />
-  },    
+    element: <Logs />,
+  },
 ]);
 
 const App = () => {
   return (
     <>
-     <RouterProvider router={router} /> 
+      <RouterProvider router={router} />
     </>
   );
 };

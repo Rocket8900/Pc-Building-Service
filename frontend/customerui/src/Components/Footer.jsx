@@ -1,17 +1,15 @@
 export function Footer() {
   return (
-    <footer className="bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg mb-4 mt-4">
+    <footer className="mt-10 bg-white border-gray-200 dark:bg-gray-900 dark:border-gray-700 rounded-lg mb-4 mt-4">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto px-4 py-2.5">
         <div className="flex flex-wrap justify-between">
           <div className="w-full sm:w-auto">
-            <p className="text-white">
-              &copy; Your Company. All rights reserved.
-            </p>
+            <p className="text-white">&copy; ESD Timez. All rights reserved.</p>
           </div>
           <div className="w-full sm:w-auto">
-            <ul className="flex space-x-4 text-white">
+            <ul className="ml-10 flex space-x-4 text-white">
               <li>
-                <a href="#" className="hover:text-gray-300">
+                <a href="/" className="hover:text-gray-300">
                   Home
                 </a>
               </li>
