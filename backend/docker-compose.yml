@@ -346,21 +346,21 @@ services:
   ####################################################
   # Recommendation MS
   ####################################################
-  # recommendation-ms:
-  #   build:
-  #     context: ./recommendation
-  #     dockerfile: Dockerfile
-  #   image: recommendation-ms
-  #   container_name: recommendation-ms
-  #   environment:
-  #     - PYTHONUNBUFFERED=1
-  #   ports:
-  #     - "5800:5800"
-  #   env_file:
-  #     - .env
-  #   networks:
-  #     - kong-net
-  #   restart: always
+  recommendation-ms:
+    build:
+      context: ./recommendation
+      dockerfile: Dockerfile
+    image: recommendation-ms
+    container_name: recommendation-ms
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "5800:5800"
+    env_file:
+      - .env
+    networks:
+      - kong-net
+    restart: always
 
   ####################################################
   # Notification MS
