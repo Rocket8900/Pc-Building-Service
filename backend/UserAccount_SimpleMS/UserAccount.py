@@ -8,7 +8,7 @@ import jwt
 import os
 
 app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/UserAccountDB"
+app.config["MONGO_URI"] = os.environ.get('DB_KEY')
 mongo = PyMongo(app)
 SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 

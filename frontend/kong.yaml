@@ -16,8 +16,8 @@ plugins:
     - TRACE
     - CONNECT
     origins:
-    - "*"
-    preflight_continue: false
+    - '*'
+    preflight_continue: true
   enabled: true
   name: cors
   protocols:
@@ -192,7 +192,7 @@ services:
   enabled: true
   host: repair-complex-ms
   name: createrepair
-  path: /createrepair
+  path: /repair/createrepair
   port: 4200
   protocol: http
   read_timeout: 60000
@@ -205,7 +205,7 @@ services:
     name: createrepair
     path_handling: v0
     paths:
-    - /createrepair
+    - /repair/createrepair
     preserve_host: false
     protocols:
     - http
@@ -340,6 +340,117 @@ services:
     path_handling: v0
     paths:
     - /get_jwt
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: repair-simple-ms
+  name: getrepairbyemployee
+  path: /repair/getrepairbyemployee
+  port: 4100
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - POST
+    - OPTIONS
+    name: getrepairbyemployee
+    path_handling: v0
+    paths:
+    - /repair/getrepairbyemployee
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: repair-simple-ms
+  name: getrepairbyid
+  path: /repair/getrepairbyid
+  port: 4100
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: getrepairbyid
+    path_handling: v0
+    paths:
+    - /repair/getrepairbyid
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: repair-simple-ms
+  name: getrepairs
+  path: /repair/getrepairs
+  port: 4100
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: getrepairs
+    path_handling: v0
+    paths:
+    - /repair/getrepairs
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: order-ms
+  name: order
+  path: /order
+  port: 5001
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: order
+    path_handling: v0
+    paths:
+    - /order
     preserve_host: false
     protocols:
     - http
@@ -529,6 +640,118 @@ services:
     path_handling: v0
     paths:
     - /retrieve-recommended-products
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: retrieve-logs
+  name: retrivelogs
+  path: /api/data
+  port: 3900
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: retrievelogs
+    path_handling: v0
+    paths:
+    - /api/data?apikey=reader
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: repair-complex-ms
+  name: updaterepaircompletion
+  path: /repair/updaterepaircompletion
+  port: 4200
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: updaterepaircompletion
+    path_handling: v0
+    paths:
+    - /repair/updaterepaircompletion
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: repair-complex-ms
+  name: updaterepairemployee
+  path: /repair/updaterepairemployee
+  port: 4200
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: updaterepairemployee
+    path_handling: v0
+    paths:
+    - /repair/updaterepairemployee
+    preserve_host: false
+    protocols:
+    - http
+    - https
+    regex_priority: 0
+    request_buffering: true
+    response_buffering: true
+    strip_path: true
+  write_timeout: 60000
+- connect_timeout: 60000
+  enabled: true
+  host: repair-complex-ms
+  name: updaterepairpart
+  path: /repair/updaterepairpart
+  port: 4200
+  protocol: http
+  read_timeout: 60000
+  retries: 5
+  routes:
+  - https_redirect_status_code: 426
+    methods:
+    - GET
+    - POST
+    - OPTIONS
+    name: updaterepairpart
+    path_handling: v0
+    paths:
+    - /repair/updaterepairpart
     preserve_host: false
     protocols:
     - http
