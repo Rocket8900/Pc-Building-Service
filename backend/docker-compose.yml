@@ -10,6 +10,99 @@ version: "3.8"
 
 services:
   ####################################################
+  # SQL DB
+  ####################################################
+  db:
+    image: mysql:5.7
+    platform: linux/amd64
+    volumes:
+      - ./cart/cart.sql:/docker-entrypoint-initdb.d/cart.sql
+      - ./order/pc_order.sql:/docker-entrypoint-initdb.d/pc_order.sql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: secure_password # Use MYSQL_ROOT_PASSWORD for the root user's password
+      MYSQL_DATABASE: pc_order
+      # Remove MYSQL_USER and MYSQL_PASSWORD as they are not used for the root user
+    ports:
+      - "3306:3306"
+    networks:
+      - kong-net
+
+  #######################################
+  # Postgres: The database used by Kong
+  #######################################
+  kong-database:
+    image: postgres:15 # tested 20231101; Ref: https://docs.konghq.com/gateway/latest/support/third-party/
+    platform: linux/amd64 # <- required for Mac M1 chip. Otherwise, can remove
+    restart: always
+    networks:
+      - kong-net
+    environment:
+      POSTGRES_DB: kong
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "kong"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  #######################################
+  # Kong database migration
+  #######################################
+  kong-migration:
+    image: kong/kong-gateway:3.2.2.5 # tested 20231101
+    platform: linux/amd64 # <- required for Mac M1 chip. Otherwise, can remove
+    command: "kong migrations bootstrap"
+    restart: on-failure
+    networks:
+      - kong-net
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: password
+    depends_on:
+      - kong-database
+
+  #######################################
+  # Kong: The API Gateway
+  #######################################
+  kong:
+    image: kong/kong-gateway:3.2.2.5 # tested 20231101
+    platform: linux/amd64 # <- required for Mac M1 chip. Otherwise, can remove
+    restart: always
+    networks:
+      - kong-net
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: password
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+    depends_on:
+      - kong-migration
+    ports: # https://docs.konghq.com/gateway/latest/production/networking/default-ports/
+      - "8000:8000" # Takes incoming HTTP traffic from Consumers, and forwards it to upstream Services.
+      - "8443:8443" # Takes incoming HTTPS traffic from Consumers, and forwards it to upstream Services.
+      - "8001:8001" # Admin API. Listens for calls from the command line over HTTP.
+      - "8444:8444" # Admin API. Listens for calls from the command line over HTTPS.
+      - "8002:8002" # Kong Manager (GUI). Listens for HTTP traffic.
+      - "8445:8445" # Kong Manager (GUI). Listens for HTTPS traffic.
+      - "8003:8003" # Dev Portal. Listens for HTTP traffic, assuming Dev Portal is enabled.
+      - "8446:8446" # Dev Portal. Listens for HTTP traffic, assuming Dev Portal is enabled.
+      - "8004:8004" # Dev Portal /files traffic over HTTPS, assuming the Dev Portal is enabled.
+      - "8447:8447" # Dev Portal /files traffic over HTTPS, assuming the Dev Portal is enabled.
+  ####################################################
   # Activity Log MS
   ####################################################
   activity-log-ms:
@@ -110,7 +203,7 @@ services:
     ports:
       - "4100:4100"
     env_file:
-      - .env
+      - ./Repair_SimpleMS/.env
     restart: always
     networks:
       - kong-net
@@ -127,7 +220,7 @@ services:
     ports:
       - "4200:4200"
     env_file:
-      - .env
+      - ./Repair_ComplexMS/controllers/.env
     restart: always
     networks:
       - kong-net
@@ -151,6 +244,8 @@ services:
     networks:
       - kong-net
     restart: always
+    depends_on:
+      - "db"
 
   ####################################################
   # Cart MS
@@ -167,7 +262,7 @@ services:
     ports:
       - "5002:5002"
     env_file:
-      - .env
+      - ./cart/.env
     networks:
       - kong-net
     restart: always
@@ -203,7 +298,7 @@ services:
     ports:
       - "5010:5010"
     env_file:
-      - .env
+      - ./UserAccount_SimpleMS/.env
     networks:
       - kong-net
     restart: always
@@ -222,7 +317,7 @@ services:
     networks:
       - kong-net
     env_file:
-      - .env
+      - ./UserAccount_ComplexMS/.env
     restart: always
 
   ####################################################
@@ -300,99 +395,5 @@ services:
     networks:
       - kong-net
     env_file:
-      - .env
+      - ./parts_simple/.env
     restart: always
-
-  ####################################################
-  # SQL DB
-  ####################################################
-  db:
-    image: mysql:5.7
-    platform: linux/amd64
-    volumes:
-      - ./cart/cart.sql:/docker-entrypoint-initdb.d/cart.sql
-      - ./order/pc_order.sql:/docker-entrypoint-initdb.d/pc_order.sql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: secure_password # Use MYSQL_ROOT_PASSWORD for the root user's password
-      MYSQL_DATABASE: pc_order
-      # Remove MYSQL_USER and MYSQL_PASSWORD as they are not used for the root user
-    ports:
-      - "3306:3306"
-    networks:
-      - kong-net
-
-  #######################################
-  # Postgres: The database used by Kong
-  #######################################
-  kong-database:
-    image: postgres:15 # tested 20231101; Ref: https://docs.konghq.com/gateway/latest/support/third-party/
-    platform: linux/amd64 # <- required for Mac M1 chip. Otherwise, can remove
-    restart: always
-    networks:
-      - kong-net
-    environment:
-      POSTGRES_DB: kong
-      POSTGRES_USER: kong
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5433:5432"
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "kong"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-
-  #######################################
-  # Kong database migration
-  #######################################
-  kong-migration:
-    image: kong/kong-gateway:3.2.2.5 # tested 20231101
-    platform: linux/amd64 # <- required for Mac M1 chip. Otherwise, can remove
-    command: "kong migrations bootstrap"
-    restart: on-failure
-    networks:
-      - kong-net
-    environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: password
-    depends_on:
-      - kong-database
-
-  #######################################
-  # Kong: The API Gateway
-  #######################################
-  kong:
-    image: kong/kong-gateway:3.2.2.5 # tested 20231101
-    platform: linux/amd64 # <- required for Mac M1 chip. Otherwise, can remove
-    restart: always
-    networks:
-      - kong-net
-    environment:
-      KONG_DATABASE: postgres
-      KONG_PG_HOST: kong-database
-      KONG_PG_USER: kong
-      KONG_PG_PASSWORD: password
-      KONG_PROXY_ACCESS_LOG: /dev/stdout
-      KONG_ADMIN_ACCESS_LOG: /dev/stdout
-      KONG_PROXY_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_ERROR_LOG: /dev/stderr
-      KONG_ADMIN_LISTEN: 0.0.0.0:8001
-      KONG_ADMIN_GUI_URL: http://localhost:8002
-    depends_on:
-      - kong-migration
-    ports: # https://docs.konghq.com/gateway/latest/production/networking/default-ports/
-      - "8000:8000" # Takes incoming HTTP traffic from Consumers, and forwards it to upstream Services.
-      - "8443:8443" # Takes incoming HTTPS traffic from Consumers, and forwards it to upstream Services.
-      - "8001:8001" # Admin API. Listens for calls from the command line over HTTP.
-      - "8444:8444" # Admin API. Listens for calls from the command line over HTTPS.
-      - "8002:8002" # Kong Manager (GUI). Listens for HTTP traffic.
-      - "8445:8445" # Kong Manager (GUI). Listens for HTTPS traffic.
-      - "8003:8003" # Dev Portal. Listens for HTTP traffic, assuming Dev Portal is enabled.
-      - "8446:8446" # Dev Portal. Listens for HTTP traffic, assuming Dev Portal is enabled.
-      - "8004:8004" # Dev Portal /files traffic over HTTPS, assuming the Dev Portal is enabled.
-      - "8447:8447" # Dev Portal /files traffic over HTTPS, assuming the Dev Portal is enabled.

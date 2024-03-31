@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Make port 5015 available to the world outside this container
 EXPOSE 5015
-
+COPY .env .
 # Define environment variable
 ENV FLASK_APP=UserAccount_Complex.py
 ENV FLASK_RUN_HOST=0.0.0.0

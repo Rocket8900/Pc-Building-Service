@@ -1,33 +1,50 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState } from "react";
 
 export const RepairPopup = ({ isOpen, onClose, orderID }) => {
   const [repairTb, setRepairTb] = useState("");
+  const [isSending, setIsSending] = useState(false); // State to control button disabled state
+
   if (!isOpen) return null; // If popup is not visible, return null
+  const token = localStorage.getItem("AUTH_KEY");
+
+  if (!token) {
+    console.error("Token not found in local storage");
+    return;
+  }
 
   function sendForRepair() {
-    // Send to Repair DB here
+    setIsSending(true); // Disable the button
     const sendRepairData = async (orderID) => {
-      const response = await fetch(
-        // http://localhost:4200/createrepair
-        "http://localhost:4200/createrepair",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            OrderID: orderID,
-            Status: "processing",
-            Description: repairTb,
-          }),
+      try {
+        const response = await fetch(
+          "http://localhost:8000/repair/createrepair",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              OrderID: orderID,
+              Status: "Processing",
+              Description: repairTb,
+            }),
+          }
+        );
+        if (response.status === 200) {
+          // If the request is successful, close the popup
+          onClose();
+        } else {
+          // Handle error or enable the button again if needed
+          setIsSending(false);
         }
-      );
+      } catch (error) {
+        console.error("Error sending repair data:", error);
+        setIsSending(false); // Enable the button again if there's an error
+      }
     };
 
-    // Close the popup
-    sendRepairData();
-    onClose();
+    sendRepairData(orderID);
   }
 
   return (
@@ -48,6 +65,7 @@ export const RepairPopup = ({ isOpen, onClose, orderID }) => {
             rows="10"
           />
           <button
+            disabled={isSending} // Disable the button based on the state
             className="mt-4 mr-3 bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
             onClick={sendForRepair}
           >

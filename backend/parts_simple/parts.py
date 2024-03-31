@@ -1,20 +1,19 @@
 import psycopg2
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import  os
 from os import environ
-
-
 app = Flask(__name__)
 CORS(app)
     
 
 # Define your database connection parameters
 conn_params = {
-    'database': 'verceldb',
-    'user': 'default',
-    'password': 'xoi7j8hkHAra',
-    'host': 'ep-snowy-frog-a1u52kl2-pooler.ap-southeast-1.aws.neon.tech',
-    'port': '5432'
+    'database': os.environ.get('DB_PARTS'),
+    'user': os.environ.get('DB_USER'),
+    'password': os.environ.get('DB_PASS'),
+    'host': os.environ.get('DB_HOST'),
+    'port': os.environ.get('DB_PORT')
 }
 
 from flask import request
