@@ -244,6 +244,7 @@ services:
     networks:
       - kong-net
     restart: always
+    command: ["./wait-for-it.sh", "db:3306", "--", "python", "./pc_order.py"]
     depends_on:
       - "db"
 

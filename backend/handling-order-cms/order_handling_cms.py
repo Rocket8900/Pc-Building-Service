@@ -105,6 +105,7 @@ def postPaymentProcessing():
         sendConfirmationEmail(cart_data, customer_name, customer_email)
 
         # Save cart data to order db with date ( # 1 )
+        print("Sending to cart db here")
         sendCartDataToOrderDB(cart_data, auth_key)
 
         # Send Logging for Order Success
