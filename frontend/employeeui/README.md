@@ -1,35 +1,52 @@
-# ESDTimez PC Building Service.
+Here's an improved version of your README:
 
-## This is the Frontend Employee Facing Side.
+```markdown
+# ESDTimez PC Building Service - Employee Facing UI
 
-### Description
+## Frontend Overview
 
-This is the Employee Facing UI where the employees can do the following:
+This section provides an overview of the frontend setup, technologies, and key features.
 
-1. Login via Google
-2. View all repairs submitted by customers
-3. Handle the entire flow for `Repair Facilitation`
-   - Take on a repair case
-   - Indicate damaged part
-   - Finish Repairs
-4. View Logs
-5. View Orders
+### Technologies Used
+
+Our frontend is built using modern technologies and tools to ensure a smooth development experience and optimal performance:
+
+- **Framework**: React.js
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **Routing**: React Router
+- **HTTP Client**: Fetch API
+- **Linting & Formatting**: ESLint, Prettier
+
+### Features
+
+The Employee Facing UI offers a range of functionalities tailored for employees to efficiently manage repair tasks and orders:
+
+1. **Google Login**: Secure authentication via Google OAuth.
+2. **Repair Management**:
+   - View all repair submissions by customers.
+   - Handle the entire repair flow, including assigning repair cases, indicating damaged parts, and marking repairs as finished.
+3. **View Logs**: Access logs for tracking activities and debugging.
+4. **View Orders**: Monitor and manage customer orders seamlessly.
 
 ### Instructions
 
-1. Delete `node_modules` and `package-lock.json` if they are still there.
-2. Run `npm install` to install reinstall the node modules and package-lock file.
-3. Run `npm run dev`
-4. After running, right click the page & click on `inspect` to bring up the developer tools
-5. Go to the `application` tab -> `storage` section -> `Local Storage` -> `http://localhost:517X` (Depends if you started Customer/Employee UI first)
-6. Ensure that there is no `AUTH_KEY`, else right click & delete it.
-7. When you go to the Login page, you should be able to see the sign-in plugin from Google.
+Follow these steps to set up and run the Employee Facing UI:
+
+1. Delete `node_modules` and `package-lock.json` if present.
+2. Run `npm install` to reinstall dependencies and generate the `package-lock.json` file.
+3. Run `npm run dev` to start the development server.
+4. After launching, right-click on the page and select `Inspect` to open the developer tools.
+5. Navigate to the `Application` tab, then the `Storage` section, and finally `Local Storage` under the appropriate `http://localhost:517X` entry (depending on whether you started the Customer or Employee UI first).
+6. Ensure that there is no `AUTH_KEY` stored. If present, right-click and delete it.
+7. Visit the Login page to access the Google sign-in plugin.
 
 ### Contributors
 
-- ALEXANDER LUK WEI HENG
-- CLARISSA KOH SHI QI
-- GERARD EMMANUEL LOH KAI-JYN
-- LOH YEE XUN GABRIEL
-- NASHWYN SINGH SANGAH
-- SHYAN CHAM
+- Alexander Luk Wei Heng
+- Clarissa Koh Shi Qi
+- Gerard Emmanuel Loh Kai-Jyn
+- Loh Yee Xun Gabriel
+- Nashwyn Singh Sangah
+- Shyan Cham
+```
