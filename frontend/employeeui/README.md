@@ -1,6 +1,4 @@
-Here's an improved version of your README:
 
-```markdown
 # ESDTimez PC Building Service - Employee Facing UI
 
 ## Frontend Overview
@@ -49,4 +47,4 @@ Follow these steps to set up and run the Employee Facing UI:
 - Loh Yee Xun Gabriel
 - Nashwyn Singh Sangah
 - Shyan Cham
-```
+
