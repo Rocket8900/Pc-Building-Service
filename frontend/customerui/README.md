@@ -1,6 +1,4 @@
-Here's an improved version of your README:
 
-```markdown
 # ESDTimez PC Building Service - Customer Facing UI
 
 ## Frontend Overview
@@ -48,6 +46,4 @@ Follow these steps to set up and run the Customer Facing UI:
 - Loh Yee Xun Gabriel
 - Nashwyn Singh Sangah
 - Shyan Cham
-```
 
-This version maintains consistency in formatting, provides clear instructions, and organizes the content for better readability. Feel free to adjust or expand upon it as needed.
