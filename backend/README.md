@@ -64,8 +64,12 @@ This backend server consists of various microservices, each responsible for spec
 
     - Simple Microservice responsible for retrieving activity and error logs from the Firebase server.
 
-12. `Repair_ComplexMS` folder
-13. `Repair_SimpleMS` folder
+12. **Repair_Complex**:
+    - Complex Microservice responsible for handling all repair operations that involve sending notifications
+   
+13. **Repair_SimpleMS**:
+    - Simple Microservice responsible for handling all operations related to repair that involves interacting with the database
+ 
 14. `recommendation` folder
 15. `userAccount_ComplexMS` folder
 16. `UserAccount_SimpleMS` folder
