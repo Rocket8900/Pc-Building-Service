@@ -11,6 +11,7 @@ CREATE TABLE IF NOT EXISTS `pc_order` (
   `order_id` int(11) NOT NULL AUTO_INCREMENT,
   `date` varchar(50) NOT NULL,
   `customer_id` varchar(50) NOT NULL,
+  `customer_email` varchar(50) NOT NULL,
   `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`order_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;

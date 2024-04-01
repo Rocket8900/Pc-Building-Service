@@ -7,6 +7,7 @@ export function OrderDetails() {
   const [cartItems, setCartItems] = useState([]);
   const [repairPopup, setRepairPopup] = useState(false); // For toggling the popup
   const [disableRepair, setDisableRepair] = useState(false);
+  const [customerEmail, setCustomerEmail] = useState('')
   let totalRef = useRef(0);
   let itemTotalRef = useRef(0);
   const searchParams = new URLSearchParams(window.location.search);
@@ -28,6 +29,7 @@ export function OrderDetails() {
           }
         );
         const data = await response.json();
+        setCustomerEmail(data.data.customer_email)
         setCartItems(data.data);
       } catch (e) {
         console.error("Error fetching order", e);
@@ -58,6 +60,7 @@ export function OrderDetails() {
             setDisableRepair(true);
           }}
           orderID={orderID}
+          customerEmail={customerEmail}
         />
         <div className="w-full max-w-6xl px-4 py-12 mt-5 bg-white shadow-lg rounded-lg">
           <h1 className="text-2xl font-bold mb-6">Order # {orderID}</h1>

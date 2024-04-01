@@ -28,6 +28,34 @@ services:
     networks:
       - kong-net
 
+  # cart_db:
+  #   image: mysql:5.7
+  #   platform: linux/amd64
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: secure_password
+  #     MYSQL_DATABASE: cart_db
+  #   restart: always
+  #   volumes:
+  #     - ./cart/cart.sql:/docker-entrypoint-initdb.d/cart.sql
+  #   ports:
+  #     - "3306:3306" # Maps port 3306 on the host to port 3306 in the container
+  #   networks:
+  #     - kong-net
+
+  # order_db:
+  #   image: mysql:5.7
+  #   platform: linux/amd64
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: secure_password
+  #     MYSQL_DATABASE: order_db
+  #   restart: always
+  #   volumes:
+  #     - ./order/pc_order.sql:/docker-entrypoint-initdb.d/pc_order.sql
+  #   ports:
+  #     - "3307:3306" # Maps port 3307 on the host to port 3306 in the container
+  #   networks:
+  #     - kong-net
+
   #######################################
   # Postgres: The database used by Kong
   #######################################
@@ -235,15 +263,16 @@ services:
     image: order-ms
     container_name: order-ms
     environment:
-      - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/pc_order
+      - ORDER_DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/pc_order
       - PYTHONUNBUFFERED=1
     ports:
       - "5001:5001"
     env_file:
-      - .env
+      - ./order/.env
     networks:
       - kong-net
     restart: always
+    command: ["./wait-for-it.sh", "db:3306", "--", "python", "./pc_order.py"]
     depends_on:
       - "db"
 
@@ -257,7 +286,7 @@ services:
     image: cart-ms
     container_name: cart-ms
     environment:
-      - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
+      - CART_DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
       - PYTHONUNBUFFERED=1
     ports:
       - "5002:5002"
@@ -339,7 +368,6 @@ services:
     env_file:
       - .env
     depends_on:
-      - cart-ms
       - order-ms
       - notification-ms
 

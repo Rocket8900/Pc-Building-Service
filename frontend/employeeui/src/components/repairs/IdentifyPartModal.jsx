@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import  {getOrderByIdAPI} from '../../api/order.api'
 import {getRepairByIdAPI, updateRepairPart} from '../../api/repair.api'
 
-const IdentifyPartModal = ({ data, closeModal, setRepairDetails }) => {
+const IdentifyPartModal = ({ data, closeModal, setRepairDetails, customerEmail }) => {
     const [orderDetails, setOrderDetails] = useState([]);
-  
+
     useEffect(() => {
       const fetchOrderbyID = async () => {
         try {
@@ -19,7 +19,7 @@ const IdentifyPartModal = ({ data, closeModal, setRepairDetails }) => {
 
     const handleupdateRepairPart = async (partName) => {
         try {
-            await updateRepairPart(data.RepairID, partName); 
+            await updateRepairPart(data.RepairID, partName, customerEmail); 
             // await updateRepairStatusSimple(data.RepairID, "Repair In progress")
             const repairsData = await getRepairByIdAPI(data.RepairID); 
             console.log("this is the updated stuff", repairsData[0])

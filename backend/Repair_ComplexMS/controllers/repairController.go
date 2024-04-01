@@ -39,9 +39,10 @@ func verifyToken(tokenString string, secretKey []byte) (jwt.MapClaims, error) {
 
 func CreateRepair(context *gin.Context) {
 	var requestBody struct {
-		Description string `json:"Description"`
-		OrderID     string `json:"OrderID" binding:"required"`
-		Status      string `json:"Status" binding:"required"`
+		Description   string `json:"Description"`
+		OrderID       string `json:"OrderID" binding:"required"`
+		Status        string `json:"Status" binding:"required"`
+		CustomerEmail string `json:"CustomerEmail" binding:"required"`
 	}
 
 	// Bind the request body to the struct
@@ -82,11 +83,11 @@ func CreateRepair(context *gin.Context) {
 		return
 	}
 
-	emailRaw, ok := userMap["email"]
-	if !ok {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Email not found within nested map"})
-		return
-	}
+	// emailRaw, ok := userMap["email"]
+	// if !ok {
+	// 	context.JSON(http.StatusUnauthorized, gin.H{"error": "Email not found within nested map"})
+	// 	return
+	// }
 
 	UserID, ok := userIDRaw.(string)
 	if !ok {
@@ -94,29 +95,30 @@ func CreateRepair(context *gin.Context) {
 		return
 	}
 
-	Email, ok := emailRaw.(string)
-	if !ok {
-		context.JSON(http.StatusUnauthorized, gin.H{"error": "Email is not a string"})
-		return
-	}
+	// Email, ok := emailRaw.(string)
+	// if !ok {
+	// 	context.JSON(http.StatusUnauthorized, gin.H{"error": "Email is not a string"})
+	// 	return
+	// }
 
 	// Define the data to be sent to repair simple
 	requestData := map[string]string{
-		"UserID":      UserID,
-		"Status":      requestBody.Status,
-		"Description": requestBody.Description,
-		"OrderID":     requestBody.OrderID,
+		"UserID":        UserID,
+		"Status":        requestBody.Status,
+		"Description":   requestBody.Description,
+		"OrderID":       requestBody.OrderID,
+		"CustomerEmail": requestBody.CustomerEmail,
 	}
 
 	// Define the data to be sent to email ms
 	requestEmailData := map[string]interface{}{
 		"routingKey": "*.email",
 		"data": map[string]interface{}{
-			"type":    "repairemail",
-			"purpose": "createRepair",
-			"OrderID": requestBody.OrderID,
-			"status":  requestBody.Status,
-			"Email":   Email,
+			"type":           "repairemail",
+			"purpose":        "createRepair",
+			"OrderID":        requestBody.OrderID,
+			"status":         requestBody.Status,
+			"customer_email": requestBody.CustomerEmail,
 		},
 	}
 
@@ -180,8 +182,9 @@ func CreateRepair(context *gin.Context) {
 
 func UpdateRepairCompletion(context *gin.Context) {
 	var requestBody struct {
-		RepairID string `json:"RepairID" binding:"required"`
-		Status   string `json:"Status" binding:"required"`
+		RepairID      string `json:"RepairID" binding:"required"`
+		Status        string `json:"Status" binding:"required"`
+		CustomerEmail string `json:"CustomerEmail" binding:"required"`
 	}
 
 	// Bind the request body to the struct
@@ -206,10 +209,11 @@ func UpdateRepairCompletion(context *gin.Context) {
 	requestEmailData := map[string]interface{}{
 		"routingKey": "*.email",
 		"data": map[string]interface{}{
-			"type":     "repairemail",
-			"purpose":  "updateStatus",
-			"repairID": requestBody.RepairID,
-			"status":   requestBody.Status,
+			"type":           "repairemail",
+			"purpose":        "updateStatus",
+			"repairID":       requestBody.RepairID,
+			"status":         requestBody.Status,
+			"customer_email": requestBody.CustomerEmail,
 		},
 	}
 
@@ -272,7 +276,8 @@ func UpdateRepairCompletion(context *gin.Context) {
 
 func UpdateRepairEmployee(context *gin.Context) {
 	var requestBody struct {
-		RepairID string `json:"RepairID" binding:"required"`
+		RepairID      string `json:"RepairID" binding:"required"`
+		CustomerEmail string `json:"CustomerEmail" binding:"required"`
 	}
 
 	authHeader := context.GetHeader("Authorization")
@@ -345,10 +350,11 @@ func UpdateRepairEmployee(context *gin.Context) {
 	requestEmailData := map[string]interface{}{
 		"routingKey": "*.email",
 		"data": map[string]interface{}{
-			"type":         "repairemail",
-			"purpose":      "assignEmployee",
-			"repairID":     requestBody.RepairID,
-			"employeeName": EmployeeName,
+			"type":           "repairemail",
+			"purpose":        "assignEmployee",
+			"repairID":       requestBody.RepairID,
+			"employeeName":   EmployeeName,
+			"customer_email": requestBody.CustomerEmail,
 		},
 	}
 
@@ -425,8 +431,9 @@ func UpdateRepairEmployee(context *gin.Context) {
 
 func UpdateRepairPart(context *gin.Context) {
 	var requestBody struct {
-		RepairID   string `json:"RepairID" binding:"required"`
-		RepairPart string `json:"RepairPart" binding:"required"`
+		RepairID      string `json:"RepairID" binding:"required"`
+		RepairPart    string `json:"RepairPart" binding:"required"`
+		CustomerEmail string `json:"CustomerEmail" binding:"required"`
 	}
 
 	// Bind the request body to the struct
@@ -456,10 +463,11 @@ func UpdateRepairPart(context *gin.Context) {
 	requestEmailData := map[string]interface{}{
 		"routingKey": "*.email",
 		"data": map[string]interface{}{
-			"type":       "repairemail",
-			"purpose":    "repairPart",
-			"repairID":   requestBody.RepairID,
-			"RepairPart": requestBody.RepairPart,
+			"type":           "repairemail",
+			"purpose":        "repairPart",
+			"repairID":       requestBody.RepairID,
+			"RepairPart":     requestBody.RepairPart,
+			"customer_email": requestBody.CustomerEmail,
 		},
 	}
 

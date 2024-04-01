@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export const RepairPopup = ({ isOpen, onClose, orderID }) => {
+export const RepairPopup = ({ isOpen, onClose, orderID, customerEmail }) => {
   const [repairTb, setRepairTb] = useState("");
   const [isSending, setIsSending] = useState(false); // State to control button disabled state
 
@@ -32,6 +32,7 @@ export const RepairPopup = ({ isOpen, onClose, orderID }) => {
               OrderID: orderID,
               Status: "Processing",
               Description: repairTb,
+              CustomerEmail: customerEmail
             }),
           }
         );

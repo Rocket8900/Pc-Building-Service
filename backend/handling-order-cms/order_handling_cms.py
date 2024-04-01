@@ -105,7 +105,10 @@ def postPaymentProcessing():
         sendConfirmationEmail(cart_data, customer_name, customer_email)
 
         # Save cart data to order db with date ( # 1 )
-        sendCartDataToOrderDB(cart_data, auth_key)
+        print("Sending to cart db here")
+        order_response = sendCartDataToOrderDB(cart_data, auth_key, customer_email)
+
+        print("ORD", order_response)
 
         # Send Logging for Order Success
         sendSuccessLog(cart_data, formatted_date, customer_id)
@@ -124,10 +127,11 @@ def postPaymentProcessing():
 
 
 #1) Post cart data from Cart MS to Order MS, delete cart entry
-def sendCartDataToOrderDB(cart_data, auth_key):
+def sendCartDataToOrderDB(cart_data, auth_key, customer_email):
     payload = {
             "cart_data": cart_data['data'],
-            "auth_key": auth_key
+            "auth_key": auth_key,
+            "customer_email": customer_email
         }
     # payload = {'cart_item': cart_data['data'], "auth_key": auth_key}
 
