@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"repair/models"
 
 	"repair/controllers"
@@ -12,7 +13,7 @@ import (
 )
 
 func main() {
-	dsn := "admin:repairdb@tcp(repairdb.cysugzh9c3nf.ap-southeast-2.rds.amazonaws.com:3306)/repairdb?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := os.Getenv("DB_URL")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -26,7 +27,7 @@ func main() {
 	server := gin.Default()
 
 	server.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST"},
 		AllowHeaders:     []string{"Origin, Content-Type, Authorization"},
 		ExposeHeaders:    []string{"Content-Length, Access-Control-Allow-Origins, Access-Control-Allow-Credentials, Content-Type"},
@@ -38,12 +39,16 @@ func main() {
 	server.POST("/repair/createrepair", controllers.CreateRepair)
 	server.GET("/repair/getrepairs", controllers.GetAllRepairs)
 	server.POST("/repair/getrepairbyemployee", controllers.GetRepairByEmployee)
-	server.POST("/repair/updaterepairstatus", controllers.UpdateRepairStatus)
-	server.POST("/repair/deleterepair", controllers.DeleteRepair)
-	server.POST("/repair/updaterepairprice", controllers.UpdateRepairPrice)
-	server.GET("/repair/getuserrepairs", controllers.GetUserRepairs)
 	server.POST("/repair/getrepairbyid", controllers.GetRepairByID)
-	server.POST("/repair/updaterepairemployee", controllers.UpdateRepairEmployee)
 
-	server.Run(":8080")
+	server.POST("/repair/updaterepairstatussimple", controllers.UpdateRepairStatusSimple)
+
+	server.POST("/repair/deleterepairsimple", controllers.DeleteRepairSimple)
+	// server.POST("/repair/updaterepairprice", controllers.UpdateRepairPrice)
+	// server.GET("/repair/getuserrepairs", controllers.GetUserRepairs)
+
+	server.POST("/repair/updaterepairemployeesimple", controllers.UpdateRepairEmployeeSimple)
+	server.POST("/repair/updaterepairpartsimple", controllers.UpdateRepairPartSimple)
+
+	server.Run(":4100")
 }

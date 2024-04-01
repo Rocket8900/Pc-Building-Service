@@ -6,17 +6,19 @@ export function OrderDetails() {
   const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [repairPopup, setRepairPopup] = useState(false); // For toggling the popup
+  const [disableRepair, setDisableRepair] = useState(false);
   let totalRef = useRef(0);
   let itemTotalRef = useRef(0);
   const searchParams = new URLSearchParams(window.location.search);
   const orderID = searchParams.get("orderID") || undefined;
+  const date = searchParams.get("date") || undefined;
 
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const response = await fetch(
-          // http://localhost:8000/retrieve-order-detail (Kong)
-          `http://localhost:5001/retrieve-order-detail`,
+          // http://localhost:5001/retrieve-order-detail (Kong)
+          `http://localhost:8000/retrieve-order-detail`,
           {
             method: "POST",
             headers: {
@@ -51,7 +53,10 @@ export function OrderDetails() {
       <div className="flex flex-col items-center min-h-screen bg-gray-100">
         <RepairPopup
           isOpen={repairPopup}
-          onClose={() => setRepairPopup(false)}
+          onClose={() => {
+            setRepairPopup(false);
+            setDisableRepair(true);
+          }}
           orderID={orderID}
         />
         <div className="w-full max-w-6xl px-4 py-12 mt-5 bg-white shadow-lg rounded-lg">
@@ -74,11 +79,13 @@ export function OrderDetails() {
                 <div className="bg-gray-100 p-4 rounded-lg">
                   <div className="flex justify-end">
                     <button
+                      disabled={disableRepair}
                       onClick={() => setRepairPopup(true)}
-                      className="bg-blue-500 hover:bg-blue-700 mr-3 text-white font-bold py-2 px-4 rounded"
+                      className={`bg-blue-500 hover:bg-blue-700 mr-3 text-white font-bold py-2 px-4 rounded disabled:bg-gray-500 disabled:cursor-not-allowed disabled:opacity-50`}
                     >
                       Send for repairs
                     </button>
+
                     <button
                       onClick={directBackToAllOrders}
                       className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"

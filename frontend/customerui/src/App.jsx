@@ -34,6 +34,9 @@ import { PickParts } from "./Pages/Employees/PickParts";
 import { SendInvoice } from "./Pages/Employees/SendInvoice";
 import { RepairCompleted } from "./Pages/Employees/RepairCompleted";
 
+// ____ EASTER ____
+import { About } from "./Pages/Easter/About";
+
 // Components
 import { NavBar } from "./Components/NavBar";
 import { EmployeeNavBar } from "./Components/EmployeeNavBar";
@@ -97,6 +100,8 @@ function App() {
         <Route path="/repair-completed" element={<RepairCompleted />} />
         <Route path="/send-invoice" element={<SendInvoice />} />
         <Route path="/show-all-repairs" element={<ShowAllRepairs />} />
+
+        <Route path="/about-us" element={<About />} />
       </Routes>
       <Footer />
     </>

@@ -9,6 +9,6 @@ scipy
 flask
 huggingface_hub
 pydantic
-Flask-CORS
-python-dotenv
-PyJWT
+Flask-JWT-Extended==4.6.0
+python-dotenv==1.0.1
+Flask-Cors

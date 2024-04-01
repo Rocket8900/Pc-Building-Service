@@ -27,252 +27,6 @@ services:
       - "3306:3306"
     networks:
       - kong-net
-  ####################################################
-  # Order MS
-  ####################################################
-  order-ms:
-    build:
-      context: ./order
-      dockerfile: Dockerfile
-    image: order-ms
-    container_name: order-ms
-    environment:
-      - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/pc_order
-      - PYTHONUNBUFFERED=1
-    ports:
-      - "5001:5001"
-    networks:
-      - kong-net
-    restart: always
-
-  ####################################################
-  # Recommendation MS
-  ####################################################
-  recommendation-ms:
-    build:
-      context: ./recommendation
-      dockerfile: Dockerfile
-    image: recommendation-ms
-    container_name: recommendation-ms
-    environment:
-      - PYTHONUNBUFFERED=1
-    ports:
-      - "5800:5800"
-    networks:
-      - kong-net
-    restart: always
-    
-
-  ####################################################
-  # Cart MS
-  ####################################################
-  cart-ms:
-    build:
-      context: ./cart
-      dockerfile: Dockerfile
-    image: cart-ms
-    container_name: cart-ms
-    environment:
-      - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
-      - PYTHONUNBUFFERED=1
-    ports:
-      - "5002:5002"
-    networks:
-      - kong-net
-    restart: always
-
-  ####################################################
-  # Handling Order CMS
-  ####################################################
-  handling-order-cms:
-    build:
-      context: ./handling-order-cms
-      dockerfile: Dockerfile
-    image: handling-order-cms
-    container_name: handling-order-cms
-    ports:
-      - "5100:5100"
-    restart: always
-    networks:
-      - kong-net
-    depends_on:
-      - cart-ms
-      - order-ms
-      - notification-ms
-
-  ####################################################
-  # Building PC CMS
-  ####################################################
-  bulding-pc-cms:
-    build:
-      context: ./building_pc_complex
-      dockerfile: Dockerfile
-    image: building-pc-cms
-    container_name: building-pc-cms
-    env_file:
-      - .env
-    ports:
-      - "5005:5005"
-    restart: always
-    environment:
-      - PYTHONUNBUFFERED=1
-    networks:
-      - kong-net
-
-  ####################################################
-  # Notification MS
-  ####################################################
-  notification-ms:
-    build:
-      context: ./notification-ms
-      dockerfile: Dockerfile
-    image: notification-ms
-    container_name: notification-ms
-    ports:
-      - "5900:5900"
-    networks:
-      - kong-net
-    env_file:
-      - ./notification-ms/.env
-    restart: always
-    depends_on:
-      - "rabbit-forward"
-
-  ####################################################
-  # Parts MS
-  ####################################################
-  parts-ms:
-    build:
-      context: ./parts_simple
-      dockerfile: Dockerfile
-    image: parts-ms
-    container_name: parts-ms
-    ports:
-      - "5950:5950"
-    networks:
-      - kong-net
-    restart: always
-
-  ####################################################
-  # Consumes Activity Log Queue & Post to Firestore DB
-  ####################################################
-  activity-log-ms:
-    build:
-      context: ./activity_log
-      dockerfile: Dockerfile
-    image: activity-log-ms
-    container_name: activity-log-ms
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    restart: always
-    networks:
-      - kong-net
-    depends_on:
-      - "rabbit-forward"
-
-  #################################################
-  # Consumes Error Log Queue & Post to Firestore DB
-  #################################################
-  error-log-ms:
-    build:
-      context: ./error_log
-      dockerfile: Dockerfile
-    image: error-log-ms
-    container_name: error-log-ms
-    ports:
-      - "4000:4000"
-    env_file:
-      - .env
-    restart: always
-    networks:
-      - kong-net
-    depends_on:
-      - "rabbit-forward"
-
-  ########################################
-  # Foward HTTP Request (POST) to RabbitMQ
-  ########################################
-  rabbit-forward:
-    build:
-      context: ./rabbit_forward
-      dockerfile: Dockerfile
-    image: rabbit-forward
-    container_name: rabbit-forward
-    ports:
-      - "3200:3200"
-    networks:
-      - kong-net
-    env_file:
-      - .env
-    restart: always
-
-  ########################################
-  # User Account Simple MS
-  ########################################
-  user-account-simple:
-    build:
-      context: ./UserAccount_SimpleMS
-      dockerfile: Dockerfile
-    image: user-account-simple
-    container_name: user-account-simple
-    ports:
-      - "5010:5010"
-    networks:
-      - kong-net
-    restart: always
-
-  ########################################
-  # User Account Complex MS
-  ########################################
-  user-account-complex:
-    build:
-      context: ./UserAccount_ComplexMS
-      dockerfile: Dockerfile
-    image: user-account-complex
-    container_name: user-account-complex
-    ports:
-      - "5015:5015"
-    networks:
-      - kong-net
-    env_file:
-      - .env
-    restart: always
-
-  #########################################################
-  # Communicate between UI & Firestore DB (Connect to KONG)
-  #########################################################
-  retrieve-logs:
-    build:
-      context: ./retrieve_logs
-      dockerfile: Dockerfile
-    image: retrieve-logs
-    container_name: retrieve-logs
-    networks:
-      - kong-net
-    ports:
-      - "3900:3900"
-    env_file:
-      - .env
-    restart: always
-
-  #######################################################
-  # Communicate between UI & Stripe API (Connect to KONG)
-  #######################################################
-  payment-ms:
-    build:
-      context: ./payment
-      dockerfile: Dockerfile
-    image: payment-ms
-    container_name: payment-ms
-    networks:
-      - kong-net
-    ports:
-      - "3400:3400"
-    env_file:
-      - ./payment/.env
-    restart: always
 
   #######################################
   # Postgres: The database used by Kong
@@ -348,3 +102,298 @@ services:
       - "8446:8446" # Dev Portal. Listens for HTTP traffic, assuming Dev Portal is enabled.
       - "8004:8004" # Dev Portal /files traffic over HTTPS, assuming the Dev Portal is enabled.
       - "8447:8447" # Dev Portal /files traffic over HTTPS, assuming the Dev Portal is enabled.
+  ####################################################
+  # Activity Log MS
+  ####################################################
+  activity-log-ms:
+    build:
+      context: ./activity_log
+      dockerfile: Dockerfile
+    image: activity-log-ms
+    container_name: activity-log-ms
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - kong-net
+    depends_on:
+      - "rabbit-forward"
+
+  ########################################
+  # Foward HTTP Request (POST) to RabbitMQ
+  ########################################
+  rabbit-forward:
+    build:
+      context: ./rabbit_forward
+      dockerfile: Dockerfile
+    image: rabbit-forward
+    container_name: rabbit-forward
+    ports:
+      - "3200:3200"
+    networks:
+      - kong-net
+    env_file:
+      - .env
+    restart: always
+
+  #######################################################
+  # Communicate between UI & Stripe API (Connect to KONG)
+  #######################################################
+  payment-ms:
+    build:
+      context: ./payment
+      dockerfile: Dockerfile
+    image: payment-ms
+    container_name: payment-ms
+    networks:
+      - kong-net
+    ports:
+      - "3400:3400"
+    env_file:
+      - ./payment/.env
+    restart: always
+
+  #########################################################
+  # Retrieve Logs MS
+  #########################################################
+  retrieve-logs:
+    build:
+      context: ./retrieve_logs
+      dockerfile: Dockerfile
+    image: retrieve-logs
+    container_name: retrieve-logs
+    networks:
+      - kong-net
+    ports:
+      - "3900:3900"
+    env_file:
+      - .env
+    restart: always
+
+  #################################################
+  # Error Log MS
+  #################################################
+  error-log-ms:
+    build:
+      context: ./error_log
+      dockerfile: Dockerfile
+    image: error-log-ms
+    container_name: error-log-ms
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - kong-net
+    depends_on:
+      - "rabbit-forward"
+
+  #################################################
+  # Repair Simple MS
+  #################################################
+  repair-simple-ms:
+    build:
+      context: ./Repair_SimpleMS
+      dockerfile: Dockerfile
+    image: repair-simple-ms
+    container_name: repair-simple-ms
+    ports:
+      - "4100:4100"
+    env_file:
+      - ./Repair_SimpleMS/.env
+    restart: always
+    networks:
+      - kong-net
+
+  #################################################
+  # Repair Complex MS
+  #################################################
+  repair-complex-ms:
+    build:
+      context: ./Repair_ComplexMS
+      dockerfile: Dockerfile
+    image: repair-complex-ms
+    container_name: repair-complex-ms
+    ports:
+      - "4200:4200"
+    env_file:
+      - ./Repair_ComplexMS/controllers/.env
+    restart: always
+    networks:
+      - kong-net
+
+  ####################################################
+  # Order MS
+  ####################################################
+  order-ms:
+    build:
+      context: ./order
+      dockerfile: Dockerfile
+    image: order-ms
+    container_name: order-ms
+    environment:
+      - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/pc_order
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "5001:5001"
+    env_file:
+      - .env
+    networks:
+      - kong-net
+    restart: always
+    depends_on:
+      - "db"
+
+  ####################################################
+  # Cart MS
+  ####################################################
+  cart-ms:
+    build:
+      context: ./cart
+      dockerfile: Dockerfile
+    image: cart-ms
+    container_name: cart-ms
+    environment:
+      - DATABASE_URL=mysql+mysqlconnector://root:secure_password@db:3306/cart
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "5002:5002"
+    env_file:
+      - ./cart/.env
+    networks:
+      - kong-net
+    restart: always
+
+  ####################################################
+  # Building PC CMS
+  ####################################################
+  bulding-pc-cms:
+    build:
+      context: ./building_pc_complex
+      dockerfile: Dockerfile
+    image: building-pc-cms
+    container_name: building-pc-cms
+    env_file:
+      - .env
+    ports:
+      - "5005:5005"
+    restart: always
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - kong-net
+
+  ########################################
+  # User Account Simple MS
+  ########################################
+  user-account-simple:
+    build:
+      context: ./UserAccount_SimpleMS
+      dockerfile: Dockerfile
+    image: user-account-simple
+    container_name: user-account-simple
+    ports:
+      - "5010:5010"
+    env_file:
+      - ./UserAccount_SimpleMS/.env
+    networks:
+      - kong-net
+    restart: always
+
+  ########################################
+  # User Account Complex MS
+  ########################################
+  user-account-complex:
+    build:
+      context: ./UserAccount_ComplexMS
+      dockerfile: Dockerfile
+    image: user-account-complex
+    container_name: user-account-complex
+    ports:
+      - "5015:5015"
+    networks:
+      - kong-net
+    env_file:
+      - ./UserAccount_ComplexMS/.env
+    restart: always
+
+  ####################################################
+  # Handling Order CMS
+  ####################################################
+  handling-order-cms:
+    build:
+      context: ./handling-order-cms
+      dockerfile: Dockerfile
+    image: handling-order-cms
+    container_name: handling-order-cms
+    ports:
+      - "5100:5100"
+    restart: always
+    networks:
+      - kong-net
+    environment:
+      - PYTHONUNBUFFERED=1
+    env_file:
+      - .env
+    depends_on:
+      - cart-ms
+      - order-ms
+      - notification-ms
+
+  ####################################################
+  # Recommendation MS
+  ####################################################
+  recommendation-ms:
+    build:
+      context: ./recommendation
+      dockerfile: Dockerfile
+    image: recommendation-ms
+    container_name: recommendation-ms
+    environment:
+      - PYTHONUNBUFFERED=1
+    ports:
+      - "5800:5800"
+    env_file:
+      - .env
+    networks:
+      - kong-net
+    restart: always
+
+  ####################################################
+  # Notification MS
+  ####################################################
+  notification-ms:
+    build:
+      context: ./notification-ms
+      dockerfile: Dockerfile
+    image: notification-ms
+    container_name: notification-ms
+    ports:
+      - "5900:5900"
+    networks:
+      - kong-net
+    env_file:
+      - ./notification-ms/.env
+    restart: always
+    depends_on:
+      - "rabbit-forward"
+
+  ####################################################
+  # Parts MS
+  ####################################################
+  parts-ms:
+    build:
+      context: ./parts_simple
+      dockerfile: Dockerfile
+    image: parts-ms
+    container_name: parts-ms
+    ports:
+      - "5950:5950"
+    networks:
+      - kong-net
+    env_file:
+      - ./parts_simple/.env
+    restart: always

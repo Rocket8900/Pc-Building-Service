@@ -12,7 +12,7 @@ export function Completion() {
       try {
         await fetch(
           // `http://localhost:5100/post-payment-processing`
-          `http://localhost:5100/post-payment-processing`,
+          `http://localhost:8000/post-payment-processing`,
           {
             method: "POST",
             headers: {

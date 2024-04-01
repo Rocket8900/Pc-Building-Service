@@ -55,6 +55,7 @@ async function consumingActivity() {
 
     console.log("Waiting for messages in %s. To exit press CTRL+C", queue);
 
+
     // Consuming the Message
     channel.consume(queue, (msg) => handleMessage(msg, queue), {
       noAck: true,

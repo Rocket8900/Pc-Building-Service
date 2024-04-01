@@ -23,7 +23,7 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import jwt
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 app = Flask(__name__)
 CORS(app)
@@ -135,7 +135,6 @@ def recommend_components_for_user(user_id, original_df, predicted_df, top_n=5):
     print("TC", top_components)
     return top_components
 
-    
 
 # GNN Workflow
 
@@ -294,7 +293,7 @@ else:
     response.raise_for_status()  
     parts_info = response.json()
     df =None
-
+    
 model_id = "clarissaksq/esd_gnn"
 filename = "model_gnn.pth"
 model = load_model(model_id, filename)  
@@ -311,17 +310,13 @@ print(G_dgl)
 
 @app.route('/retrieve-recommended-products', methods=['POST'])
 def recommend():
-    # Retrieving customer_id from POST request
     auth_key_received = request.json.get('auth_key', None)
 
-    # Checking to see if Auth key is received
     if (auth_key_received is None):
         return jsonify({"error": "Auth key is missing"}), 400
 
-    # Decoding the Auth key
     auth_key = decode_user(auth_key_received)
 
-    # Retrieving the customerID from Auth Key
     user_id = auth_key['user_id']['user_id']
 
     print(user_id)
@@ -335,18 +330,46 @@ def recommend():
         print("predict matrix loaded")
         utility_matrix = load_utility_matrix(model_id)
         print("utility matrix loaded")
-        recommendations = recommend_components_for_user(user_id, utility_matrix, predicted_df, top_n=10)
-        print("svd done: ", recommendations)
+        if user_id in utility_matrix.index:
+            print("in matrix")
+            recommendations = recommend_components_for_user(user_id, utility_matrix, predicted_df, top_n=10)
+            print("svd done: ", recommendations)
+        else:
+            print("not in matrix")
+            url = "http://host.docker.internal:5001/retrieve-customer-order"
+
+            headers = {
+                "Content-Type": "application/json",
+            }
+
+            data = {
+                "auth_key": auth_key_received,
+            }
+            response = requests.post(url, json=data, headers=headers)
+            print("http sent")
+            response.raise_for_status() 
+            response = response.json()
+            y=[]
+            x=response["data"]
+            print(x)
+            x=x[0]["order_item"]
+            print(x)
+            x=x[0]["parts"]
+            print(x)
+            for i in range (len(x)):
+                print(y)
+                y.append(x[i]["parts_id"])
+            y = pd.Index(y)
+            recommendations = y
+            print(recommendations)
         features = G_dgl.ndata['feat']
         embeddings = model(G_dgl, features)
         embeddings = embeddings.detach().cpu().numpy()
         print("embeddings done: ", embeddings)
-        # cos_sim_matrix = cosine_similarity(embeddings)
         user_components_df = recommendations
         input_components = user_components_df.unique().tolist()
         print("input components done: ", input_components)
         print("component_to_idx: ",component_to_idx )
-        # input_embeddings = np.array([embeddings[component_to_idx[c]] for c in input_components if c in component_to_idx])
         input_embeddings = np.array([embeddings[component_to_idx[str(c)]] for c in input_components if str(c) in component_to_idx])
         print("input embeddings done: ", input_embeddings)
         sim_matrix = cosine_similarity(input_embeddings)

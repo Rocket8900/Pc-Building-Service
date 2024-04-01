@@ -8,7 +8,7 @@ from sqlalchemy.orm import relationship
 from flask_cors import CORS
 from dotenv import load_dotenv
 
-SECRET_KEY = os.environ.get('JWT_SECRET_KEY', 'SantaClause123')
+SECRET_KEY = os.environ.get('JWT_SECRET_KEY')
 
 from datetime import datetime
 
@@ -17,7 +17,8 @@ app = Flask(__name__)
 CORS(app)
 # CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "http://localhost:8080"]}})
 #'mysql+mysqlconnector://root:root@localhost:8889/cart'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+mysqlconnector://root:secure_password@db:3306/cart'
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_recycle': 299}
 

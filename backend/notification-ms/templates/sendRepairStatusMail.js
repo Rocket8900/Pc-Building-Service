@@ -30,22 +30,8 @@ async function sendRepairStatusMail(message) {
     function get_html_message(message) {
       return `
               <h3>Congratulations ${message.repairID}!</h3>
-              <div>Your order has an update on the status!.</div>
-              <div>Here are the details on your order:</div>
-              <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border:  1px solid #ddd; width:  100%;">
-                  <thead>
-                      <tr>
-                          <th style="padding:  10px; border:  1px solid #ddd;">Name</th>
-                          <th style="padding:  10px; border:  1px solid #ddd;">Price</th>
-                          <th style="padding:  10px; border:  1px solid #ddd;">Quantity</th>
-                          <th style="padding:  10px; border:  1px solid #ddd;">Sub-total</th>
-                      </tr>
-                  </thead>
-                  <tbody>
-                      ${message.status}
-                      </tr>
-                  </tbody>
-              </table>
+              <div>Your order has completed!.</div>
+              <div>Do come down to our office and collect your repaired pc.</div>
           `;
     }
   

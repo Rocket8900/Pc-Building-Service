@@ -18,7 +18,7 @@ app.use(
 );
 
 // ____ For retrieving the publishable Key (Stripe) ____
-app.get("/api/v1/config", async (req, res) => {
+app.get("/fetch-publishable-key", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
   res.setHeader("Content-Type", "application/json");
   console.log("PUBLISH KEY:", process.env.STRIPE_PUBLISH_KEY);
@@ -29,7 +29,7 @@ app.get("/api/v1/config", async (req, res) => {
 app.use(bodyParser.json());
 
 // ____ For Creating the Payment Intent (Stripe) ____
-app.post("/api/v1/create-payment-intent", async (req, res) => {
+app.post("/create-payment-intent", async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader(
@@ -43,7 +43,7 @@ app.post("/api/v1/create-payment-intent", async (req, res) => {
   try {
     const paymentIntent = await stripe.paymentIntents.create({
       currency: "usd",
-      amount: total * 100,
+      amount: +(total * 100).toFixed(2),
       automatic_payment_methods: { enabled: true },
     });
     res.send({ clientSecret: paymentIntent.client_secret });

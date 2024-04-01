@@ -35,7 +35,8 @@ export function Dropdown({
       setPcName("");
     }
 
-    const response = await fetch("http://localhost:5005/addPart", {
+    // http://localhost:5005/addPart
+    const response = await fetch("http://localhost:8000/addPart", {
       method: "POST",
       credentials: "include",
       headers: {

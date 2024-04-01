@@ -12,7 +12,8 @@ export function Login() {
   const loginSuccess = (tokenResponse) => {
     console.log(tokenResponse);
     axios
-      .post(`http://localhost:5015/get_jwt`, { tokenResponse })
+      // "http://localhost:5015/get_jwt"
+      .post(`http://localhost:8000/get_jwt`, { tokenResponse })
       .then((res) => {
         localStorage.setItem("AUTH_KEY", res.data);
         navigate("/");
