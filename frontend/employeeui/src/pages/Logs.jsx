@@ -10,7 +10,6 @@ function Logs() {
     const fetchLogs = async () => {
       try {
         const logsData = await getLogsAPI();
-        console.log(logsData, "Logs Data");
         setLogs(logsData);
       } catch (error) {
         console.error("Error fetching logs:", error);
