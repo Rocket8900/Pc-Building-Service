@@ -1,34 +1,34 @@
-# ESDTimez PC Building Service.
+# ESDTimez PC Building Service
 
-### Description
+## Description
 
-This folder contains 2 sub-folders (Customer / Employee UI). Each sub-folder has their respective `README.md`.
+This repository contains two sub-folders: Customer UI and Employee UI. Each sub-folder has its respective `README.md` file.
 
-The Customer and Employee UI can be ran independently.
+Both the Customer and Employee UI can be run independently.
 
-### Instructions
+## Instructions
 
-1. Before running either UIs, start up the `Backend`.
+Before running either UIs, make sure to start up the Backend service.
 
-### To Retrieve / Sync Kong Configuration File:
+### Retrieving / Syncing Kong Configuration File
 
-## Retrieve from Service / Routes from Kong:
+#### Retrieve Service / Routes from Kong
 
-1. Install DecK
-2. Verify Services Configuration exists (curl http://localhost:8001/services)
-3. Verify Routes Configuration exists (curl http://localhost:8001/routes)
-4. `deck dump -o <path-to-store-kong-config>/kong.yaml`
+1. Install DecK.
+2. Verify Services Configuration exists: `curl http://localhost:8001/services`.
+3. Verify Routes Configuration exists: `curl http://localhost:8001/routes`.
+4. Run `deck dump -o <path-to-store-kong-config>/kong.yaml`.
 
-## Sync to Kong:
+#### Sync to Kong
 
-1. Change Directories to this folder (Root folder for UI).
-1. `deck sync -s <path-to-kong-config>/kong.yaml`
+1. Navigate to the root folder for the UI.
+2. Run `deck sync -s <path-to-kong-config>/kong.yaml`.
 
-### Contributors:
+## Contributors
 
-- ALEXANDER LUK WEI HENG
-- CLARISSA KOH SHI QI
-- GERARD EMMANUEL LOH KAI-JYN
-- LOH YEE XUN GABRIEL
-- NASHWYN SINGH SANGAH
-- SHYAN CHAM
+- Alexander Luk Wei Heng
+- Clarissa Koh Shi Qi
+- Gerard Emmanuel Loh Kai-Jyn
+- Loh Yee Xun Gabriel
+- Nashwyn Singh Sangah
+- Shyan Cham

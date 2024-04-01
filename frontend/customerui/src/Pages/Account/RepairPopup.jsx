@@ -12,6 +12,10 @@ export const RepairPopup = ({ isOpen, onClose, orderID }) => {
     return;
   }
 
+  if (!token) {
+      console.error('Token not found in local storage');
+      return;
+  }
   function sendForRepair() {
     setIsSending(true); // Disable the button
     const sendRepairData = async (orderID) => {
