@@ -29,7 +29,7 @@ async function sendRepairStatusMail(message) {
   // Email Content
   function get_html_message(message) {
     return `
-              <h3>Congratulations ${message.customer_name}!</h3>
+              <h3>Congratulations!</h3>
               <div>Your repair for Order #${message.repairID} has completed!.</div>
               <div>Do come down to our office and collect your repaired pc.</div>
           `;
